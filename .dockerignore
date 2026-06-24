@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.git/
+.env
+*.db
+*.sqlite
+*.log
+data/cache/runtime/
+tests/

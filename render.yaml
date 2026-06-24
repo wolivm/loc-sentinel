@@ -1,0 +1,14 @@
+# One-click deploy of the Loc Sentinel Console to Render (free tier).
+# In Render: New → Blueprint → connect this repo → Apply. No secrets required.
+services:
+  - type: web
+    name: loc-sentinel-console
+    runtime: docker
+    plan: free
+    region: oregon
+    healthCheckPath: /api/config
+    envVars:
+      - key: DEMO_MODE
+        value: "true"
+      - key: DEMO_RATE_LIMIT_PER_MIN
+        value: "20"
