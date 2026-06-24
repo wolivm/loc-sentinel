@@ -40,6 +40,18 @@ def _sentence_count(text: str) -> int:
     return max(1, len(parts))
 
 
+def _term_present(target_lower: str, gloss_target_lower: str) -> bool:
+    """Stem-aware presence check: the exact term, or a target word sharing its
+    first 5 letters (so the verb 'sincronizar' satisfies the noun
+    'sincronización', 'archivieren' satisfies 'archivieren', etc.)."""
+    if gloss_target_lower in target_lower:
+        return True
+    if len(gloss_target_lower) >= 5:
+        stem = gloss_target_lower[:5]
+        return any(w.startswith(stem) for w in re.findall(r"[^\W\d_]+", target_lower))
+    return False
+
+
 def _glossary_applied(source_en: str, target: str, sot: SoT):
     """Which locked terms were expected (source term present in EN) and whether
     the target term appears. Returns (applied, missing) lists of GlossaryTerm."""
@@ -51,7 +63,7 @@ def _glossary_applied(source_en: str, target: str, sot: SoT):
             continue
         # Only consider locked terms whose ENGLISH form is in the source string.
         if re.search(rf"(?<!\w){re.escape(term.source.lower())}(?!\w)", low_src):
-            if term.target.lower() in low_tgt:
+            if _term_present(low_tgt, term.target.lower()):
                 applied.append(term)
             else:
                 missing.append(term)
@@ -102,7 +114,13 @@ def lint(source_en: str, target: str, sot: SoT, key: str = "", context: str = ""
         flags.append(Flag(WARN, "all_caps", "Target is ALL CAPS; use sentence case."))
     elif sot.lang != "de":
         # Title-Case heuristic (skipped for German, which capitalizes all nouns).
-        words = [w for w in re.findall(r"[^\W\d_]+", target) if w]
+        # Mask out locked glossary targets first so feature names like "Modo Foco"
+        # or "Nimbus" don't read as Title Case.
+        masked = target
+        for term in sot.locked:
+            if term.target:
+                masked = re.sub(re.escape(term.target), " ", masked)
+        words = [w for w in re.findall(r"[^\W\d_]+", masked) if w]
         if len(words) >= 3 and sum(1 for w in words[1:] if w[:1].isupper()) >= 2:
             flags.append(Flag(WARN, "title_case", "Looks like Title Case; use sentence case."))
 

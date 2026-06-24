@@ -1,0 +1,80 @@
+{
+  "_note": "Curated reference translations for the Nimbus sample strings, keyed by string KEY. seed.py writes these into translations.json (the demo cache) via the engine's own normalization so keys always align. Two entries deliberately preserve common RAW model mistakes so the deterministic QA gates fire visibly in the demo: es loading_notes adds an ellipsis (ERROR gate), pt-BR save_button is Title Cased (WARN gate). build_cache.py can regenerate this from the live model when an Anthropic key is set.",
+  "translations": {
+    "save_button": {
+      "de": "Notiz speichern",
+      "pt-BR": "Salvar Sua Nota",
+      "es": "Guardar nota"
+    },
+    "sync_error_banner": {
+      "de": "Ihre Notizen konnten nicht synchronisiert werden. Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "pt-BR": "Não foi possível sincronizar suas notas. Verifique sua conexão e tente novamente.",
+      "es": "No se pudieron sincronizar tus notas. Comprueba tu conexión e inténtalo de nuevo."
+    },
+    "save_error_toast": {
+      "de": "Notiz konnte nicht gespeichert werden",
+      "pt-BR": "Não foi possível salvar a nota",
+      "es": "No se pudo guardar la nota"
+    },
+    "welcome_user": {
+      "de": "Willkommen zurück, %@",
+      "pt-BR": "Bem-vindo de volta, %@",
+      "es": "Bienvenido de nuevo, %@"
+    },
+    "reminder_greeting": {
+      "de": "Hallo {name}, Sie haben eine neue Erinnerung",
+      "pt-BR": "Oi {name}, você tem um novo lembrete",
+      "es": "Hola {name}, tienes un nuevo recordatorio"
+    },
+    "reminders_today": {
+      "de": "Sie haben heute {count} Erinnerungen",
+      "pt-BR": "Você tem {count} lembretes hoje",
+      "es": "Tienes {count} recordatorios hoy"
+    },
+    "streak_safe": {
+      "de": "Ihre Serie ist sicher. Machen Sie morgen weiter.",
+      "pt-BR": "Sua sequência está segura. Continue amanhã.",
+      "es": "Tu racha está a salvo. Continúa mañana."
+    },
+    "note_saved_undo": {
+      "de": "Notiz gespeichert\nZum Rückgängigmachen tippen",
+      "pt-BR": "Nota salva\nToque para desfazer",
+      "es": "Nota guardada\nToca para deshacer"
+    },
+    "delete_confirm_body": {
+      "de": "Möchten Sie diese Notiz wirklich löschen? Dies kann nicht rückgängig gemacht werden.",
+      "pt-BR": "Tem certeza de que deseja excluir esta nota? Isso não pode ser desfeito.",
+      "es": "¿Seguro que quieres eliminar esta nota? Esto no se puede deshacer."
+    },
+    "focus_mode_cta": {
+      "de": "Öffnen Sie den Fokusmodus, um Erinnerungen stummzuschalten",
+      "pt-BR": "Abra o Modo Foco para silenciar lembretes",
+      "es": "Abre el Modo Concentración para silenciar los recordatorios"
+    },
+    "streak_fire": {
+      "de": "Serie in Flammen 🔥",
+      "pt-BR": "Sequência em chamas 🔥",
+      "es": "Racha en llamas 🔥"
+    },
+    "loading_notes": {
+      "de": "Ihre Notizen werden geladen",
+      "pt-BR": "Carregando suas notas",
+      "es": "Cargando tus notas…"
+    },
+    "notes_synced_count": {
+      "de": "{count} Notizen synchronisiert",
+      "pt-BR": "{count} notas sincronizadas",
+      "es": "{count} notas sincronizadas"
+    },
+    "habit_done_cheer": {
+      "de": "Gut gemacht! Sie haben die heutige Gewohnheit abgeschlossen.",
+      "pt-BR": "Bom trabalho! Você concluiu o hábito de hoje.",
+      "es": "¡Buen trabajo! Has completado el hábito de hoy."
+    },
+    "focus_promo": {
+      "de": "Mit dem Fokusmodus schaffen Sie mehr. Probieren Sie es noch heute aus!",
+      "pt-BR": "O Modo Foco ajuda você a fazer mais. Experimente hoje!",
+      "es": "El Modo Concentración te ayuda a hacer más. ¡Pruébalo hoy!"
+    }
+  }
+}
