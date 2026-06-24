@@ -1,0 +1,19 @@
+source,target,kind,note
+Nimbus,Nimbus,locked,Product name — never translate or decline.
+note,Notiz,locked,Core object. Plural: Notizen.
+notes,Notizen,locked,
+habit,Gewohnheit,locked,Plural: Gewohnheiten.
+streak,Serie,locked,A run of consecutive days; do not use "Strähne".
+reminder,Erinnerung,locked,Plural: Erinnerungen.
+Focus Mode,Fokusmodus,locked,Feature name; one word.
+tag,Schlagwort,locked,Avoid "Tag" (ambiguous with day). Plural: Schlagwörter.
+folder,Ordner,locked,
+sync,Synchronisierung,locked,Verb: synchronisieren.
+widget,Widget,locked,Keep as Widget.
+archive,archivieren,locked,Verb. Noun: Archiv.
+pin,anheften,locked,Verb for pinning to top.
+settings,Einstellungen,locked,
+Account,Konto,avoid,Use "Konto" instead of the anglicism "Account".
+downloaden,herunterladen,avoid,Use "herunterladen" instead of "downloaden".
+liken,gefällt mir,avoid,Avoid the anglicism "liken".
+Setting,Einstellung,avoid,Use the German "Einstellung(en)".

@@ -1,0 +1,13 @@
+# Machine-readable market conventions for the Spanish market.
+name: "Spanish"
+locale: "es"
+crowdin_locale: "es-ES"
+formality: "informal"        # tú
+formality_pronoun: "tú"
+sentence_case: true
+decimal_separator: ","
+thousands_separator: "."
+quotes_open: "«"
+quotes_close: "»"
+inverted_punctuation: true    # ¿ … ?  and  ¡ … !  required
+flag: "🇪🇸"

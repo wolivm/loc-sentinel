@@ -1,0 +1,20 @@
+source,target,kind,note
+Nimbus,Nimbus,locked,Product name — never translate.
+note,nota,locked,Plural: notas.
+notes,notas,locked,
+habit,hábito,locked,Plural: hábitos.
+streak,racha,locked,A run of consecutive days.
+reminder,recordatorio,locked,Plural: recordatorios.
+Focus Mode,Modo Concentración,locked,Feature name.
+tag,etiqueta,locked,Plural: etiquetas.
+folder,carpeta,locked,
+sync,sincronización,locked,Verb: sincronizar.
+widget,widget,locked,Keep lowercase "widget".
+archive,archivar,locked,Verb.
+pin,fijar,locked,Verb for pinning to top.
+settings,ajustes,locked,Use "ajustes" (es-ES) for settings.
+eliminar,eliminar,locked,Use "eliminar" for delete (consistency).
+borrar,eliminar,avoid,Prefer "eliminar" over "borrar" for delete actions.
+aplicación,app,avoid,Prefer "app" in UI; reserve "aplicación" for formal docs.
+linkear,enlazar,avoid,Avoid the anglicism "linkear".
+remover,quitar,avoid,Use "quitar" or "eliminar"; "remover" is a false friend.

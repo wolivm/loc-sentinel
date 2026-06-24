@@ -1,0 +1,30 @@
+{
+  "project": "Nimbus",
+  "fileName": "app_strings.json",
+  "sourceLanguage": "en",
+  "_note": "Fictional sample strings for the Nimbus notes/habit app. Deliberately includes a Title-Case trap, error strings (no '!' allowed), placeholders (%@, {name}, {count}, \\n), emoji, an ellipsis trap, multi-sentence strings, and several sources that exactly match the seeded TM (verbatim reuse).",
+  "strings": [
+    {"id": 1001, "key": "save_button", "text": "Save Your Note", "context": "Primary button in the note editor. NOTE: source is Title Case on purpose — targets must be sentence case."},
+    {"id": 1002, "key": "empty_notes_title", "text": "Create your first note", "context": "Empty state heading on the Notes tab."},
+    {"id": 1003, "key": "sync_error_banner", "text": "Couldn't sync your notes. Check your connection and try again.", "context": "Error banner shown when background sync fails. This is a failure message."},
+    {"id": 1004, "key": "save_error_toast", "text": "Note couldn't be saved", "context": "Error toast shown when saving fails."},
+    {"id": 1005, "key": "welcome_user", "text": "Welcome back, %@", "context": "Greeting on the home screen. %@ is the user's first name."},
+    {"id": 1006, "key": "reminder_greeting", "text": "Hi {name}, you have a new reminder", "context": "Push notification body. {name} is the user's first name."},
+    {"id": 1007, "key": "reminders_today", "text": "You have {count} reminders today", "context": "Home screen summary line. {count} is a number. MARKET-FIT: shows formal vs informal address."},
+    {"id": 1008, "key": "streak_safe", "text": "Your streak is safe. Keep it going tomorrow.", "context": "Confirmation after completing a habit. Two sentences."},
+    {"id": 1009, "key": "note_saved_undo", "text": "Note saved\nTap to undo", "context": "Two-line toast. \\n separates the lines and must be preserved."},
+    {"id": 1010, "key": "delete_confirm_title", "text": "Delete this note?", "context": "Title of the delete confirmation dialog."},
+    {"id": 1011, "key": "delete_confirm_body", "text": "Are you sure you want to delete this note? This can't be undone.", "context": "Body of the delete confirmation dialog. Two sentences."},
+    {"id": 1012, "key": "focus_mode_cta", "text": "Open Focus Mode to silence reminders", "context": "Call to action on the focus card. Uses locked terms Focus Mode and reminders."},
+    {"id": 1013, "key": "pin_action", "text": "Pin to top", "context": "Context-menu action on a note."},
+    {"id": 1014, "key": "archive_action", "text": "Archive note", "context": "Context-menu action on a note."},
+    {"id": 1015, "key": "streak_fire", "text": "Streak on fire 🔥", "context": "Badge label on a long streak. Emoji must be preserved."},
+    {"id": 1016, "key": "loading_notes", "text": "Loading your notes", "context": "Loading state. NOTE: targets must NOT add an ellipsis."},
+    {"id": 1017, "key": "settings_title", "text": "Settings", "context": "Settings screen title."},
+    {"id": 1018, "key": "new_folder", "text": "New folder", "context": "Button to create a folder."},
+    {"id": 1019, "key": "sync_now", "text": "Sync now", "context": "Manual sync button."},
+    {"id": 1020, "key": "notes_synced_count", "text": "{count} notes synced", "context": "Status line after a sync. {count} is a number."},
+    {"id": 1021, "key": "habit_done_cheer", "text": "Nice work! You completed today's habit", "context": "Celebration after finishing a habit. One exclamation is fine here (not an error string)."},
+    {"id": 1022, "key": "focus_promo", "text": "Focus Mode helps you get more done. Try it today!", "context": "Promo card. Two sentences, one exclamation allowed."}
+  ]
+}

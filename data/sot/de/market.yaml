@@ -1,0 +1,15 @@
+# Machine-readable market conventions for the German market.
+# Read by the translator (prompt grounding) and the QA linter. Editing this is
+# how you tune a market — no engine code changes.
+name: "German (Germany)"
+locale: "de"
+crowdin_locale: "de"
+formality: "formal"          # Sie / Ihr — never du
+formality_pronoun: "Sie"
+sentence_case: true
+decimal_separator: ","
+thousands_separator: "."
+quotes_open: "„"
+quotes_close: "“"
+inverted_punctuation: false   # German does not use ¿ ¡
+flag: "🇩🇪"

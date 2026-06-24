@@ -1,0 +1,13 @@
+# Machine-readable market conventions for the Brazilian Portuguese market.
+name: "Portuguese (Brazil)"
+locale: "pt-BR"
+crowdin_locale: "pt-BR"
+formality: "informal"        # você — friendly, never tu / o senhor
+formality_pronoun: "você"
+sentence_case: true
+decimal_separator: ","
+thousands_separator: "."
+quotes_open: "“"
+quotes_close: "”"
+inverted_punctuation: false
+flag: "🇧🇷"

@@ -1,0 +1,20 @@
+source,target,kind,note
+Nimbus,Nimbus,locked,Product name — never translate.
+note,nota,locked,Plural: notas.
+notes,notas,locked,
+habit,hábito,locked,Plural: hábitos.
+streak,sequência,locked,A run of consecutive days; do not use "série" or "ofensiva".
+reminder,lembrete,locked,Plural: lembretes.
+Focus Mode,Modo Foco,locked,Feature name.
+tag,etiqueta,locked,Plural: etiquetas.
+folder,pasta,locked,
+sync,sincronização,locked,Verb: sincronizar.
+widget,widget,locked,Keep lowercase "widget".
+archive,arquivar,locked,Verb.
+pin,fixar,locked,Verb for pinning to top.
+settings,configurações,locked,
+excluir,excluir,locked,Use "excluir" for delete (consistency).
+deletar,excluir,avoid,Use "excluir" instead of the anglicism "deletar".
+logar,entrar,avoid,Use "entrar" instead of "logar".
+startar,iniciar,avoid,Avoid the anglicism "startar".
+printar,imprimir,avoid,Avoid "printar".

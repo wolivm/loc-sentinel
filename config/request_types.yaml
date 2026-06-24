@@ -1,0 +1,74 @@
+# =============================================================================
+# Request-type registry — the "flexible: supports an increasing number of use
+# cases automatically" requirement, expressed as DATA.
+#
+# Triage matches an inbound event (Crowdin webhook) or a /loc request against
+# these rows IN ORDER and uses the first match. Adding a new request type =
+# add a row here. No engine code changes. (See DECISIONS.md #8.)
+#
+#   name            human-readable id
+#   match.events    Crowdin webhook event names that map to this type
+#   match.keywords  words/phrases (lowercased substring) for free-text /loc requests
+#   handler         auto  -> run the deterministic RAG pipeline
+#                   human -> open a ticket and @-route to a person in Slack
+#   sla_hours       target turnaround, surfaced in /loc queue
+#   default_assignee Slack @handle (or team) to route human work to
+#   description     shown to stakeholders
+# =============================================================================
+
+request_types:
+  - name: string_translation
+    match:
+      events: ["string.added", "string.updated"]
+      keywords: ["translate string", "translate this", "new string"]
+    handler: auto
+    sla_hours: 4
+    default_assignee: "@loc-team"
+    description: "Translate one or more source strings through the deterministic engine."
+
+  - name: file_translation
+    match:
+      events: ["file.added", "file.updated", "file.translated"]
+      keywords: ["translate file", "new file", "upload"]
+    handler: auto
+    sla_hours: 8
+    default_assignee: "@loc-team"
+    description: "Translate all source strings in an uploaded/updated file."
+
+  - name: new_language_setup
+    match:
+      events: []
+      keywords: ["new language", "add a language", "new market", "new locale"]
+    handler: human
+    sla_hours: 48
+    default_assignee: "@loc-lead"
+    description: "Stand up a new target market (guidelines, glossary, TM). Needs a human to author the SoT."
+
+  - name: glossary_update
+    match:
+      events: ["glossary.updated"]
+      keywords: ["glossary", "terminology", "locked term", "add a term"]
+    handler: human
+    sla_hours: 24
+    default_assignee: "@terminologist"
+    description: "Add or change a locked/avoid term. Reviewed by the terminologist."
+
+  - name: tool_or_vendor_question
+    match:
+      events: []
+      keywords: ["vendor", "tool", "integration", "how do i", "question", "help"]
+    handler: human
+    sla_hours: 24
+    default_assignee: "@loc-lead"
+    description: "Process / tooling / vendor questions that need a human answer."
+
+  # Catch-all — anything we don't recognise loops in a human (requirement #2:
+  # "knows when to loop in a member"). Keep this LAST.
+  - name: unknown
+    match:
+      events: ["*"]
+      keywords: ["*"]
+    handler: human
+    sla_hours: 24
+    default_assignee: "@loc-lead"
+    description: "Unrecognised request — routed to a human to triage."
