@@ -143,6 +143,60 @@ scripts/           seed.py, simulate_event.py (offline demo fallback)
 - **[DECISIONS.md](DECISIONS.md)** — deliberate engineering choices + rejected alternatives.
 - **[LIMITATIONS.md](LIMITATIONS.md)** — honest fragility list + mitigations.
 - **[DEMO.md](DEMO.md)** — the 3–5 minute demo script.
-- **[SCALABILITY](#scalability)** — see section below.
+- **[SLACK_SETUP.md](SLACK_SETUP.md)** — click-by-click Slack tokens. **[DEPLOY.md](DEPLOY.md)** — host the Console.
+- **[SUBMISSION.md](SUBMISSION.md)** — hackathon submission checklist + how to try our solution.
 
-_(Live setup, scalability, and analytics sections are filled in as the build progresses.)_
+---
+
+## Live setup
+
+Everything above runs offline. To go fully live against **real Crowdin + Slack**:
+
+1. **Slack** (Socket Mode → no tunnel): follow **[SLACK_SETUP.md](SLACK_SETUP.md)**, fill the four
+   `SLACK_*` values in `.env`, then `./run slack`.
+2. **Crowdin**: put `CROWDIN_API_TOKEN`, `CROWDIN_PROJECT_ID`, and a `CROWDIN_WEBHOOK_SECRET` in `.env`.
+3. **Expose the webhook receiver** (Crowdin needs a public URL):
+   ```bash
+   ./run webhook                       # FastAPI on :8000
+   ngrok http 8000                     # or: cloudflared tunnel --url http://localhost:8000
+   ```
+   Copy the public HTTPS URL into `PUBLIC_BASE_URL`.
+4. **Register the webhook in Crowdin**: Project → **Tools → Webhooks → Add Webhook**
+   - URL: `https://<your-tunnel>/webhooks/crowdin`
+   - Events: **String added**, **String updated** (and/or **File added/updated**)
+   - Add a secret header `X-Webhook-Secret: <your CROWDIN_WEBHOOK_SECRET>` (or use a Crowdin App for
+     HMAC `X-Crowdin-Signature` — both are verified).
+5. **Demo it**: add a source string in Crowdin → a ticket opens, the engine runs, the proposal is
+   written back to Crowdin (not approved), and a review card appears in **#localization**. Approve →
+   Crowdin marks it approved + the pair is appended to the TM. Then `POST /projects/{id}/translations/builds`
+   (the Approve path can trigger a build) = "in production."
+
+**On-stage safety net** — if the tunnel or Crowdin is flaky, `scripts/simulate_event.py` fires the
+*exact same pipeline* offline and (with `--post`) posts real Slack cards. The demo never depends on a
+live tunnel.
+
+---
+
+## Scalability
+
+Architected so growth is **data and infrastructure, not rewrites**:
+
+- **Config-driven, add-by-data:** a new market = drop a `data/sot/<lang>/` folder; a new request type
+  = a row in `config/request_types.yaml`. No code change, no deploy.
+- **Stateless engine:** `run_string()` holds no per-request state → scale horizontally behind a queue.
+- **Prompt caching of the Source of Truth:** the large guidelines+glossary block is a cached system
+  prefix, so per-string cost/latency stays low as volume grows.
+- **TM-first:** every exact match is free and instant (no model call), so cost *falls* as the TM grows.
+- **Idempotent, signature-verified webhook workers:** safe to run many in parallel; duplicate events
+  are no-ops.
+- **SQLite now, Postgres-ready:** all ticket state goes through a thin repository boundary; the TM is a
+  CSV (the system of record + a Crowdin TM seed) that promotes to a Postgres table unchanged.
+- **Scale ceilings we haven't crossed** (and how we'd cross them) are listed honestly in
+  **[LIMITATIONS.md](LIMITATIONS.md)** — batching into per-language digests, a real job queue with a
+  DLQ, a shared rate limiter, and per-session TM overlays for the multi-user Console.
+
+## Analytics
+
+`python -m app.analytics` prints business-impact metrics over the live ticket store: **% auto-handled
+(reuse+high)**, **TM hit rate**, **avg confidence**, **edits learned**, and **escalation rate** — the
+numbers a PM cares about (see [PITCH.md](PITCH.md)).

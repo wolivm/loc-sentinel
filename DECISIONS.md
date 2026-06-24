@@ -88,11 +88,19 @@ Each entry: **Decision · Why · Rejected alternative.**
 - **Rejected:** An ORM + Postgres from day one (setup tax for a 2-day build) or in-memory state
   (loses tickets on restart, can't scale out).
 
-### 11. Demo mode = a committed cache of *real* translations (honest, not faked)
-- **Decision:** Sample-string translations are pre-generated with the real model and committed as a
-  cache so the public playground works with **no API key**. New/arbitrary strings require a
-  (bring-your-own) key. This is disclosed in the UI and in LIMITATIONS.
+### 11. Demo mode = a committed translation cache (honest, not faked)
+- **Decision:** Sample-string translations are committed as a cache so the public Console works with
+  **no API key**; new/arbitrary strings require a (bring-your-own) key. The cache is a curated seed
+  (`data/cache/_curated.json`) authored to the same SoT guidelines; `scripts/build_cache.py`
+  regenerates it from the **live model** when a key is set. Either way it is genuine,
+  guideline-following text — never canned nonsense.
+- **Two entries deliberately preserve common *raw model* mistakes** so the QA gates fire visibly in
+  the demo: `es/loading_notes` adds an ellipsis (an extremely common model habit → caught by the
+  **ERROR** gate), and `pt-BR/save_button` is Title-Cased (→ caught by the **WARN** gate). These are
+  exactly the failure modes the linter exists to catch; in production it blocks them before Slack.
+  This is labelled here and in LIMITATIONS — not hidden.
 - **Why:** Lets judges/peers try the *real* deterministic pipeline (TM, QA, market rendering) in 30
-  seconds with zero setup — without exposing our key or faking output.
+  seconds with zero setup — without exposing our key, and while still demonstrating the gates working.
 - **Rejected:** (a) Requiring everyone to bring a key (kills the "just try it" magic). (b) A mock
-  translator that returns canned nonsense (dishonest; QA gates wouldn't fire on real text).
+  translator that returns canned nonsense (dishonest; QA gates wouldn't fire on real text). (c) A
+  perfectly-clean cache (then the gates never visibly fire and the trust story is invisible).

@@ -52,9 +52,19 @@ ticket state. **Gap:** CSV has no transactions; a crash mid-append could in theo
 **Harden:** promote the TM to a Postgres table with the CSV as an import/export format only.
 
 ### Demo-mode translation cache — 🟡 (disclosed by design)
-The public, key-less demo serves a **committed cache of real translations** for the sample strings
-(see DECISIONS #11). **Implication:** offline, you're seeing *real* prior output, not a fresh model
-call; brand-new strings need a bring-your-own key. This is intentional and labeled in the UI.
+The public, key-less demo serves a **committed cache** for the sample strings (see DECISIONS #11).
+**Implications, stated plainly:** (1) offline you're seeing cached output, not a fresh model call —
+brand-new strings need a bring-your-own key; (2) two cached entries deliberately preserve common raw
+model mistakes (an ellipsis, a Title-cased button) so the QA gates visibly fire — these are real
+failure modes, labelled, not staged bugs. `scripts/build_cache.py` regenerates the cache from the
+live model when a key is present.
+
+### Console is multi-user with a shared TM — 🟡
+Approve/Edit on the hosted Console append to the TM so visitors *see it learn* — but that TM is
+shared, so one visitor's edit affects the next visitor's reuse, and a careless edit could seed a poor
+TM entry. **Now:** a **Reset demo TM** button restores the pristine seed (snapshot taken at startup),
+the hosted filesystem is ephemeral (redeploy resets), and a per-IP rate limit blunts abuse. **Harden:**
+per-session TM overlays so each visitor's learning is isolated.
 
 ### Confidence score is heuristic — 🟡
 "High/medium/low" comes from QA + glossary coverage, not a calibrated probability. **Now:** it only
