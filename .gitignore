@@ -1,0 +1,34 @@
+# --- Secrets (NEVER commit; repo is public) ---
+.env
+.env.*
+!.env.example
+
+# --- Python ---
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# --- Databases / logs / runtime state ---
+*.db
+*.sqlite
+*.sqlite3
+*.log
+
+# --- OS / editor ---
+.DS_Store
+.idea/
+.vscode/
+
+# --- Real / private data (only the fictional Nimbus data is committed) ---
+data/private/
+data/real/
+*.real.csv
+
+# Runtime-generated TM working copy used by the playground (the committed
+# seed lives in data/sot/<lang>/TM_<lang>.csv). Keep the demo reproducible.
+data/cache/runtime/

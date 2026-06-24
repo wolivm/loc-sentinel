@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Loc Sentinel — convenience launcher. Usage:
+#   ./run web        # self-serve playground at http://localhost:8000
+#   ./run cli FILE   # run the engine over a sample strings file
+#   ./run webhook    # FastAPI Crowdin webhook receiver
+#   ./run slack      # Slack Bolt app (Socket Mode)
+#   ./run seed       # load Source of Truth + TM into SQLite
+#   ./run all        # webhook + slack together (live mode)
+set -euo pipefail
+cd "$(dirname "$0")"
+
+# Activate venv if present.
+if [[ -d .venv ]]; then source .venv/bin/activate; fi
+
+cmd="${1:-web}"; shift || true
+case "$cmd" in
+  web)     exec uvicorn app.web.console:app --reload --port "${WEB_PORT:-8000}" ;;
+  webhook) exec uvicorn app.main:app --reload --port "${WEBHOOK_PORT:-8000}" ;;
+  slack)   exec python -m app.slack.bot ;;
+  cli)     exec python -m app.cli "$@" ;;
+  seed)    exec python scripts/seed.py "$@" ;;
+  all)     exec python -m app.run_all ;;
+  *)       echo "unknown command: $cmd"; exit 1 ;;
+esac
