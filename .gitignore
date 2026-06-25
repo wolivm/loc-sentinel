@@ -32,3 +32,7 @@ data/real/
 # Runtime-generated TM working copy used by the playground (the committed
 # seed lives in data/sot/<lang>/TM_<lang>.csv). Keep the demo reproducible.
 data/cache/runtime/
+
+# sqlite WAL/SHM sidecars
+*.db-shm
+*.db-wal
