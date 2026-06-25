@@ -73,16 +73,31 @@ def test_approve_idempotent(fresh_db, monkeypatch):
     assert out2["resolved"]["note"] == "already resolved"
 
 
-def test_build_review_blocks_shapes():
-    from app.slack.cards import build_review_blocks
+def test_build_card_shapes_and_color():
+    from app.slack.cards import build_card
     ticket = {"id": 1, "target_lang": "es", "type": "string_translation"}
     unit = {"id": 9, "key": "loading_notes", "source_en": "Loading your notes",
             "proposed_target": "Cargando tus notas…", "final_target": "",
             "confidence": "low", "confidence_score": 0.2, "tm_origin": "new",
             "qa_flags": [{"severity": "ERROR", "code": "ellipsis", "message": "Ellipsis (…) is not allowed."}],
-            "provenance": {"confidence_badge": "🔴", "translation_origin": "cache"}}
-    blocks = build_review_blocks(ticket, unit)
+            "provenance": {"confidence_badge": "🔴", "confidence_color": "red",
+                           "translation_origin": "cache", "escalate": True}}
+    card = build_card(ticket, unit)
+    att = card["attachments"][0]
+    assert att["color"] == "#DA3633"  # red color bar for low confidence
+    blocks = att["blocks"]
     assert blocks[0]["type"] == "header"
     assert any(b.get("type") == "actions" for b in blocks)
-    resolved = build_review_blocks(ticket, unit, resolved={"status": "rejected", "actor": "@w", "note": "bad"})
-    assert not any(b.get("type") == "actions" for b in resolved)
+    # resolved card drops the action buttons
+    resolved = build_card(ticket, unit, resolved={"status": "rejected", "actor": "@w", "note": "bad"})
+    assert not any(b.get("type") == "actions" for b in resolved["attachments"][0]["blocks"])
+
+
+def test_channel_routing():
+    from app.config import Settings
+    s = Settings(_env_file=None, slack_channel_de="C_DE", slack_channel_es="C_ES",
+                 slack_loc_channel_id="C_SUMMARY")
+    assert s.channel_for("de") == "C_DE"
+    assert s.channel_for("es") == "C_ES"
+    assert s.channel_for("pt-BR") == "C_SUMMARY"  # unset per-lang → summary fallback
+    assert s.summary_channel == "C_SUMMARY"

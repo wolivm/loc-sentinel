@@ -40,7 +40,13 @@ class Settings(BaseSettings):
     slack_bot_token: str = ""
     slack_app_token: str = ""
     slack_signing_secret: str = ""
-    slack_loc_channel_id: str = ""
+    slack_loc_channel_id: str = ""          # the SUMMARY / digest channel (#localization)
+    # Per-language review channels (review cards route here by target language).
+    slack_channel_de: str = ""
+    slack_channel_pt_br: str = ""
+    slack_channel_es: str = ""
+    # Platform/product label for the digest (a real org has App, Web, iOS, ...).
+    platform_label: str = "App"
 
     # --- Webhook receiver ---
     public_base_url: str = ""
@@ -73,6 +79,20 @@ class Settings(BaseSettings):
 
     def has_slack(self) -> bool:
         return bool(self.slack_bot_token and self.slack_app_token)
+
+    @property
+    def summary_channel(self) -> str:
+        """The digest channel (#localization) — platform-level 'what happened'."""
+        return self.slack_loc_channel_id
+
+    def channel_for(self, lang: str) -> str:
+        """Review channel for a target language; falls back to the summary channel."""
+        mapping = {
+            "de": self.slack_channel_de,
+            "pt-BR": self.slack_channel_pt_br,
+            "es": self.slack_channel_es,
+        }
+        return mapping.get(lang) or self.slack_loc_channel_id
 
 
 @lru_cache

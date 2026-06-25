@@ -12,7 +12,7 @@ A duplicate or malformed event must NEVER crash the demo.
 from __future__ import annotations
 
 import logging
-
+from collections import Counter
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -92,9 +92,11 @@ def _strings_from_events(events: list[dict], client) -> list[dict]:
 
 def process_strings(strings: list[dict], langs: list[str], *, source: str,
                     event_name: str) -> list[dict]:
-    """Run the engine per language, write proposals to Crowdin, post Slack cards."""
+    """Run the engine per language, write proposals to Crowdin, route review cards
+    to the per-language channels, and post a platform digest to #localization."""
     client = get_client()
     results = []
+    per_lang_summary = []
     for lang in langs:
         if lang not in available_langs():
             log.warning("no SoT for lang %s — skipping", lang)
@@ -127,15 +129,30 @@ def process_strings(strings: list[dict], langs: list[str], *, source: str,
                     except Exception as ex:  # noqa: BLE001
                         log.warning("Crowdin add_translation failed for U%s: %s", u["id"], ex)
 
-        # Post Slack review cards.
+        # Route review cards to the per-language channel.
         try:
             from app.slack.cards import post_review_cards
             post_review_cards(out["ticket"], out["units"])
         except Exception as ex:  # noqa: BLE001
-            log.info("Slack post skipped: %s", ex)
+            log.info("Slack post skipped for %s: %s", lang, ex)
 
+        bands = Counter(u["confidence"] for u in out["units"])
+        per_lang_summary.append({
+            "lang": lang, "name": sot.market_name, "flag": sot.flag,
+            "count": len(out["units"]), "bands": bands,
+            "channel": get_settings().channel_for(lang),
+        })
         results.append({"lang": lang, "ticket": out["ticket"]["id"], "auto": True,
                         "units": len(out["units"]), "summary": out["ticket"]["confidence_summary"]})
+
+    # Platform digest → #localization.
+    if per_lang_summary:
+        try:
+            from app.slack.cards import post_summary
+            post_summary(n_strings=len(strings), per_lang=per_lang_summary,
+                         platform=get_settings().platform_label)
+        except Exception as ex:  # noqa: BLE001
+            log.info("Slack summary skipped: %s", ex)
     return results
 
 

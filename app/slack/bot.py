@@ -20,7 +20,7 @@ from app.config import get_settings
 from app.planner import tickets
 from app.planner.db import init_db
 from app.slack.actions import finalize_unit
-from app.slack.cards import build_review_blocks
+from app.slack.cards import build_card
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("slack.bot")
@@ -41,11 +41,8 @@ def _actor(body: dict) -> str:
 
 
 def _update_card(client, channel: str, ts: str, ticket: dict, unit: dict, resolved: dict) -> None:
-    client.chat_update(
-        channel=channel, ts=ts,
-        text=f"{resolved['status']} {unit['key']}",
-        blocks=build_review_blocks(ticket, unit, resolved=resolved),
-    )
+    card = build_card(ticket, unit, resolved=resolved)
+    client.chat_update(channel=channel, ts=ts, text=card["text"], attachments=card["attachments"])
 
 
 # --------------------------------------------------------------------------- #
