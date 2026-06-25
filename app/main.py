@@ -62,34 +62,31 @@ def health() -> dict:
 def _strings_from_events(events: list[dict], client) -> list[dict]:
     """Extract source strings from a Crowdin events payload (tolerant of shape).
 
-    Deduped by Crowdin string id: a single import often fires BOTH a file.* event
-    and string.* events for the same strings, so we'd otherwise process each twice
-    (the second add_translation 400s as a duplicate). One string → one unit."""
+    We act on PER-STRING events only (string.added / string.updated). A Crowdin
+    sync also fires a file.* event for the same change; acting on that too would
+    re-list and re-translate the whole file (bulk duplicates). With the GitHub
+    continuous-localization integration, the per-string events are authoritative,
+    so the file event is intentionally ignored. Deduped by string id within the
+    payload; cross-delivery dedup is handled by tickets.already_proposed().
+    (File-based fallback via client.list_strings() is available but disabled here.)"""
     out: list[dict] = []
     seen: set = set()
-
-    def _add(s: dict) -> None:
+    for e in events:
+        name = (e.get("event") or "").lower()
+        if not name.startswith("string."):
+            continue
+        s = e.get("string") or {}
         sid = s.get("id")
         if not s.get("text") or (sid is not None and sid in seen):
-            return
+            continue
         if sid is not None:
             seen.add(sid)
         out.append({
             "source_en": s.get("text", ""),
-            "key": s.get("identifier", "") or str(s.get("id", "")),
+            "key": s.get("identifier", "") or str(sid or ""),
             "context": s.get("context", "") or "",
-            "crowdin_string_id": s.get("id", ""),
+            "crowdin_string_id": sid or "",
         })
-
-    for e in events:
-        name = (e.get("event") or "").lower()
-        if name.startswith("string."):
-            _add(e.get("string") or {})
-        elif name.startswith("file.") and client is not None:
-            file_id = (e.get("file") or {}).get("id")
-            if file_id:
-                for s in client.list_strings(file_id=int(file_id)):
-                    _add(s)
     return out
 
 
