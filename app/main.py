@@ -60,29 +60,36 @@ def health() -> dict:
 
 
 def _strings_from_events(events: list[dict], client) -> list[dict]:
-    """Extract source strings from a Crowdin events payload (tolerant of shape)."""
+    """Extract source strings from a Crowdin events payload (tolerant of shape).
+
+    Deduped by Crowdin string id: a single import often fires BOTH a file.* event
+    and string.* events for the same strings, so we'd otherwise process each twice
+    (the second add_translation 400s as a duplicate). One string → one unit."""
     out: list[dict] = []
+    seen: set = set()
+
+    def _add(s: dict) -> None:
+        sid = s.get("id")
+        if not s.get("text") or (sid is not None and sid in seen):
+            return
+        if sid is not None:
+            seen.add(sid)
+        out.append({
+            "source_en": s.get("text", ""),
+            "key": s.get("identifier", "") or str(s.get("id", "")),
+            "context": s.get("context", "") or "",
+            "crowdin_string_id": s.get("id", ""),
+        })
+
     for e in events:
         name = (e.get("event") or "").lower()
         if name.startswith("string."):
-            s = e.get("string") or {}
-            if s.get("text"):
-                out.append({
-                    "source_en": s.get("text", ""),
-                    "key": s.get("identifier", "") or str(s.get("id", "")),
-                    "context": s.get("context", "") or "",
-                    "crowdin_string_id": s.get("id", ""),
-                })
+            _add(e.get("string") or {})
         elif name.startswith("file.") and client is not None:
             file_id = (e.get("file") or {}).get("id")
             if file_id:
                 for s in client.list_strings(file_id=int(file_id)):
-                    out.append({
-                        "source_en": s.get("text", ""),
-                        "key": s.get("identifier", "") or str(s.get("id", "")),
-                        "context": s.get("context", "") or "",
-                        "crowdin_string_id": s.get("id", ""),
-                    })
+                    _add(s)
     return out
 
 
