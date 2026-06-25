@@ -102,8 +102,16 @@ def process_strings(strings: list[dict], langs: list[str], *, source: str,
         if lang not in available_langs():
             log.warning("no SoT for lang %s — skipping", lang)
             continue
+        # Idempotency across multiple webhook deliveries for one sync: skip
+        # strings already proposed for this lang+source (changed source re-runs).
+        fresh = [s for s in strings
+                 if not tickets.already_proposed(s.get("crowdin_string_id"), lang, s["source_en"])]
+        if not fresh:
+            log.info("all %d strings already proposed for %s — skipping", len(strings), lang)
+            results.append({"lang": lang, "skipped": "already proposed"})
+            continue
         out = open_translation_ticket(
-            strings=strings, lang=lang, source=source, event_name=event_name,
+            strings=fresh, lang=lang, source=source, event_name=event_name,
         )
         if not out["auto"]:
             results.append({"lang": lang, "ticket": out["ticket"]["id"], "auto": False})

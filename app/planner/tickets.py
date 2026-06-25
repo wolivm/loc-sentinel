@@ -195,6 +195,19 @@ def already_processed(event_id: str) -> bool:
     ).fetchone() is not None
 
 
+def already_proposed(crowdin_string_id, lang: str, source_en: str) -> bool:
+    """True if this exact (Crowdin string, language, source text) already has a
+    unit — so repeated webhook deliveries for one sync don't create duplicate
+    cards. A CHANGED source (string.updated) has different source_en → re-processed."""
+    if not crowdin_string_id:
+        return False
+    return get_conn().execute(
+        """SELECT 1 FROM units u JOIN tickets t ON u.ticket_id = t.id
+           WHERE u.crowdin_string_id = ? AND t.target_lang = ? AND u.source_en = ? LIMIT 1""",
+        (str(crowdin_string_id), lang, source_en),
+    ).fetchone() is not None
+
+
 def mark_processed(event_id: str) -> None:
     conn = get_conn()
     conn.execute("INSERT OR IGNORE INTO processed_events(event_id, at) VALUES (?,?)",
