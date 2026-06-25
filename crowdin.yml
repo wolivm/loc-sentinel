@@ -1,0 +1,18 @@
+# Crowdin ↔ GitHub integration config (continuous localization).
+# Crowdin reads this from the repo: it watches the English source and, when
+# translations are approved, opens a PR back with the per-locale files.
+#
+#   i18n/en.json        ← source strings (developers edit this; a push triggers the pipeline)
+#   i18n/de.json        ← German         (written back by Crowdin on approval)
+#   i18n/pt-BR.json     ← Brazilian PT
+#   i18n/es-ES.json     ← Spanish
+#
+# %locale% expands to de / pt-BR / es-ES (matching the project's target locales).
+project_id_env: CROWDIN_PROJECT_ID
+api_token_env: CROWDIN_API_TOKEN
+preserve_hierarchy: true
+
+files:
+  - source: /i18n/en.json
+    translation: /i18n/%locale%.json
+    type: json
