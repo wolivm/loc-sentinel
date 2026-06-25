@@ -1,4 +1,6 @@
 {
-  "sync_now": "Sync now",
-  "reminders_today": "You have {count} reminders today"
+  "sync_now": "Jetzt synchronisieren",
+  "reminders_today": "Sie haben heute {count} Erinnerungen",
+  "save_button": "Save Your Note",
+  "loading_notes": "Loading your notes"
 }
