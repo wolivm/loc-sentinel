@@ -349,7 +349,15 @@ async function runPipeline(){
 
 /* ---------- card rendering ---------- */
 function cardHTML(r,opts={}){
-  const m=r.market, color=r.confidence_color, band=r.confidence_band.toUpperCase();
+  const m=r.market;
+  // No translation available (cache miss + no key on this hosted demo).
+  if(r.available===false || !r.proposed_target){
+    return `<div class="att" style="border-left-color:var(--dim)"><div class="pad">
+      <div class="ahead">${m.flag} ${esc(m.name)}</div>
+      <div class="qa-flag WARN" style="background:rgba(76,141,255,.12);color:#9ec1ff">🔑 ${esc(r.error||'This brand-new string needs a live translation.')}</div>
+    </div></div>`;
+  }
+  const color=r.confidence_color, band=r.confidence_band.toUpperCase();
   const origin = r.tm_origin==='reused' ? '♻️ Reused verbatim from Translation Memory'
     : '🆕 Machine-translated, grounded in the guidelines';
   const gloss = (r.glossary_applied||[]).length
@@ -546,12 +554,21 @@ async function freeTranslate(){
     body:JSON.stringify({text,key:$('fp-key').value,context:$('fp-ctx').value,byo_key:$('fp-byo').value})});
   const data=await r.json();
   if(data.error){res.innerHTML='<div class="qa-flag ERROR">'+esc(data.error)+'</div>';return;}
-  // market fit
-  const formal=data.results.find(x=>x.market.formality==='formal'), informal=data.results.find(x=>x.market.formality==='informal');
-  $('fp-marketfit').innerHTML=(formal&&informal&&formal.proposed_target&&informal.proposed_target)?
-    `<div class="panel" style="margin-top:14px;border-style:dashed;border-color:var(--accent)">🎯 <b>Same English, fit for each market.</b>
+  const anyUnavailable=(data.results||[]).some(x=>x.available===false||!x.proposed_target);
+  const formal=data.results.find(x=>x.market.formality==='formal'&&x.proposed_target);
+  const informal=data.results.find(x=>x.market.formality==='informal'&&x.proposed_target);
+  if(anyUnavailable && !CFG.has_key){
+    // Brand-new string + no key on this hosted demo → guide the user.
+    $('fp-marketfit').innerHTML=`<div class="panel" style="margin-top:14px;border-color:var(--accent)">
+      🔑 <b>That’s a brand-new string, and this hosted demo runs with no API key.</b><br>
+      The deterministic half (TM, glossary, QA, market rules) needs no key — but translating a string the cache has
+      never seen does. Two ways to see it: run a <b>🎬 Guided demo</b> sample string (instant), or paste your own
+      <b>Anthropic key</b> in the expander above.</div>`;
+  } else if(formal && informal){
+    $('fp-marketfit').innerHTML=`<div class="panel" style="margin-top:14px;border-style:dashed;border-color:var(--accent)">🎯 <b>Same English, fit for each market.</b>
       ${formal.market.flag} <b>${esc(formal.market.name)}</b> uses <b>${esc(formal.market.pronoun)}</b> (formal): “${esc(formal.proposed_target)}” —
-      ${informal.market.flag} <b>${esc(informal.market.name)}</b> uses <b>${esc(informal.market.pronoun)}</b> (informal): “${esc(informal.proposed_target)}”.</div>`:'';
+      ${informal.market.flag} <b>${esc(informal.market.name)}</b> uses <b>${esc(informal.market.pronoun)}</b> (informal): “${esc(informal.proposed_target)}”.</div>`;
+  } else { $('fp-marketfit').innerHTML=''; }
   res.innerHTML=''; data.results.forEach(x=>{const w=document.createElement('div');w.innerHTML=cardHTML(x);res.appendChild(w);});
 }
 
