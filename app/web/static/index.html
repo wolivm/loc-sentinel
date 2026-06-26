@@ -59,16 +59,20 @@
   .graph-head .stat{font-size:11.5px;color:var(--stext);display:flex;align-items:center;gap:7px}
   .blink{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:lsBlink 1.6s infinite}
   .nodes{display:flex;align-items:center;justify-content:space-between;position:relative;gap:0}
-  .node{position:relative;flex:0 0 auto;width:158px;border:1px solid var(--accent,var(--bd));border-radius:14px;padding:13px;
-    background:linear-gradient(180deg,rgba(15,22,18,.8),rgba(9,14,12,.8));transition:.35s}
+  /* base = DEACTIVATED (not reached yet): dim, muted, no accent */
+  .node{position:relative;flex:0 0 auto;width:158px;border:1px solid var(--bd-quiet);border-radius:14px;padding:13px;opacity:.45;
+    background:linear-gradient(180deg,rgba(15,22,18,.55),rgba(9,14,12,.55));transition:.35s}
   .node.hero{width:172px}
+  .node.active,.node.done{opacity:1;border-color:var(--accent)}
   .node .glow{position:absolute;inset:-20px;border-radius:24px;z-index:-1;opacity:0;transition:.4s;
     background:radial-gradient(closest-side,var(--accent),transparent);filter:blur(14px)}
   .node.active .glow{opacity:.5}
-  .node.active{border-color:var(--accent)}
   .node .tile{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;margin-bottom:9px;
+    color:var(--muted);background:rgba(255,255,255,.03);border:1px solid var(--bd-quiet)}
+  .node.active .tile,.node.done .tile{color:var(--accent);
     background:color-mix(in srgb,var(--accent) 14%,transparent);border:1px solid color-mix(in srgb,var(--accent) 45%,transparent)}
-  .node.hero .tile{background:linear-gradient(135deg,var(--green),var(--green3));box-shadow:0 0 18px rgba(47,227,154,.4)}
+  .node.hero.active .tile,.node.hero.done .tile{color:#06140d;border:none;
+    background:linear-gradient(135deg,var(--green),var(--green3));box-shadow:0 0 18px rgba(47,227,154,.4)}
   .node .ttl{font-family:"Space Grotesk";font-weight:600;font-size:14px;color:#eaf2ec}
   .node .nsub{font-size:11px;color:var(--muted);margin-top:2px}
   .node .done{position:absolute;top:10px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 7px var(--green);opacity:0;transition:.3s}
@@ -82,6 +86,11 @@
   @keyframes lsTravel{0%{left:-6%;opacity:0}12%{opacity:1}88%{opacity:1}100%{left:104%;opacity:0}}
   @keyframes lsBlink{0%,100%{opacity:1}50%{opacity:.25}}
   @keyframes lsSpin{to{transform:rotate(360deg)}}
+  /* breathing CTA — draws the eye to where the user must click */
+  @keyframes breG{0%,100%{box-shadow:0 0 18px rgba(47,227,154,.35),0 0 0 0 rgba(47,227,154,0)}50%{box-shadow:0 0 18px rgba(47,227,154,.35),0 0 0 7px rgba(47,227,154,.16)}}
+  @keyframes breB{0%,100%{box-shadow:0 0 18px rgba(77,139,255,.32),0 0 0 0 rgba(77,139,255,0)}50%{box-shadow:0 0 18px rgba(77,139,255,.32),0 0 0 7px rgba(77,139,255,.18)}}
+  @keyframes breR{0%,100%{box-shadow:0 0 18px rgba(240,96,138,.28),0 0 0 0 rgba(240,96,138,0)}50%{box-shadow:0 0 18px rgba(240,96,138,.28),0 0 0 7px rgba(240,96,138,.16)}}
+  .br-g{animation:breG 1.7s ease-in-out infinite} .br-b{animation:breB 1.7s ease-in-out infinite} .br-r{animation:breR 1.7s ease-in-out infinite}
 
   /* panels */
   .panel{border:1px solid var(--bd);border-radius:18px;padding:26px;background:var(--panel)}
@@ -189,8 +198,8 @@
   .res{margin-top:12px;padding:11px 13px;border-radius:9px;font-size:13.5px}
   .res.ok{background:rgba(47,227,154,.12);color:#9ff0c9}
   .res.no{background:rgba(240,96,138,.12);color:#f5a0bb}
-  .nav{display:flex;align-items:center;justify-content:space-between;margin-top:16px;gap:10px;flex-wrap:wrap}
-  .nav .h{color:var(--muted);font-size:13px}
+  .nav{display:flex;flex-direction:column;align-items:flex-start;gap:11px;margin-top:16px}
+  .nav .h{color:var(--muted);font-size:13px;display:inline-flex;align-items:center;gap:6px}
   /* result */
   .check{width:60px;height:60px;border-radius:16px;display:grid;place-items:center;margin:4px auto 14px;
     background:linear-gradient(135deg,#2fe39a,#149c6a);box-shadow:0 0 26px rgba(47,227,154,.4)}
@@ -210,7 +219,7 @@
   #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:#0a0f0c;border:1px solid var(--bd);border-radius:11px;padding:12px 18px;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:50;box-shadow:0 14px 50px rgba(0,0,0,.6);max-width:90vw}
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   @media(max-width:820px){.slack{grid-template-columns:1fr}.side{display:none}.sgrid,.recap,.fpgrid{grid-template-columns:1fr}.node{width:120px}.node .nsub{display:none}}
-  @media(prefers-reduced-motion:reduce){.wire .pkt{animation:none!important;display:none}.blink,.spin{animation:none!important}}
+  @media(prefers-reduced-motion:reduce){.wire .pkt{animation:none!important;display:none}.blink,.spin,.br-g,.br-b,.br-r{animation:none!important}}
 </style>
 </head>
 <body>
@@ -275,20 +284,24 @@
 <script>
 /* ---------- icons ---------- */
 const IC={
-  commit:'<circle cx="12" cy="12" r="3"/><path d="M12 2v6.8M12 15.2V22"/>',
-  globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.4 2.6 15.6 0 18M12 3c-2.6 2.4-2.6 15.6 0 18"/>',
   shield:'<path d="M12 2 4 5v6c0 5 3.4 8.6 8 11 4.6-2.4 8-6 8-11V5l-8-3Z"/><path d="M9 12.5 11 14.5 15.5 9.5"/>',
-  chat:'<path d="M5 5h14a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-4 3.5V6a1 1 0 0 1 1-1Z"/>',
   deploy:'<path d="M6 18 18 6M9 6h9v9"/>',
   code:'<path d="M8 9 4 12l4 3M16 9l4 3-4 3M13 6l-2 12"/>',
   check:'<path d="M5 12.5 10 17 19 7"/>',
 };
-function svg(name,color,size){return `<svg width="${size||16}" height="${size||16}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${IC[name]}</svg>`;}
+function svg(name,color,size){return `<svg width="${size||16}" height="${size||16}" viewBox="0 0 24 24" fill="none" stroke="${color||'currentColor'}" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${IC[name]}</svg>`;}
+// Real brand marks (Simple Icons), filled with currentColor so node state tints them.
+const BRAND={
+  github:'<path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/>',
+  slack:'<path d="M5.042 15.165a2.528 2.528 0 0 1-2.52 2.523A2.528 2.528 0 0 1 0 15.165a2.527 2.527 0 0 1 2.522-2.52h2.52v2.52zM6.313 15.165a2.527 2.527 0 0 1 2.521-2.52 2.527 2.527 0 0 1 2.521 2.52v6.313A2.528 2.528 0 0 1 8.834 24a2.528 2.528 0 0 1-2.521-2.522v-6.313zM8.834 5.042a2.528 2.528 0 0 1-2.521-2.52A2.528 2.528 0 0 1 8.834 0a2.528 2.528 0 0 1 2.521 2.522v2.52H8.834zM8.834 6.313a2.528 2.528 0 0 1 2.521 2.521 2.528 2.528 0 0 1-2.521 2.521H2.522A2.528 2.528 0 0 1 0 8.834a2.528 2.528 0 0 1 2.522-2.521h6.312zM18.956 8.834a2.528 2.528 0 0 1 2.522-2.521A2.528 2.528 0 0 1 24 8.834a2.528 2.528 0 0 1-2.522 2.521h-2.522V8.834zM17.688 8.834a2.528 2.528 0 0 1-2.523 2.521 2.527 2.527 0 0 1-2.52-2.521V2.522A2.527 2.527 0 0 1 15.165 0a2.528 2.528 0 0 1 2.523 2.522v6.312zM15.165 18.956a2.528 2.528 0 0 1 2.523 2.522A2.528 2.528 0 0 1 15.165 24a2.527 2.527 0 0 1-2.52-2.522v-2.522h2.52zM15.165 17.688a2.527 2.527 0 0 1-2.52-2.523 2.526 2.526 0 0 1 2.52-2.52h6.313A2.527 2.527 0 0 1 24 15.165a2.528 2.528 0 0 1-2.522 2.523h-6.313z"/>',
+  crowdin:'<path d="M16.119 17.793a2.619 2.619 0 0 1-1.667-.562c-.546-.436-1.004-1.09-1.018-1.858-.008-.388.414-.388.414-.388l1.018-.008c.332.008.43.47.445.586.128 1.04.717 1.495 1.168 1.702.273.123.204.513-.362.528zm-5.695-5.287L8.5 12.252c-.867-.214-.844-.982-.807-1.247a5.119 5.119 0 0 1 .814-2.125c.545-.804 1.303-1.508 2.29-2.073 1.856-1.074 4.45-1.673 7.31-1.673 2.09 0 4.256.27 4.29.27.197.025.328.213.333.437a.377.377 0 0 1-.355.393l-.92-.01c-2.902 0-4.968.394-6.506 1.248-1.527.837-2.57 2.117-3.287 4.012-.076.163-.335 1.12-1.24 1.022zm2.533 7.823c-1.44 0-2.797-.622-3.825-1.746-.87-.96-1.397-1.931-1.493-3.164-.06-.813.3-1.094.788-1.044l1.988.218c.45.092.75.34.825.854.397 2.736 2.122 3.814 3.15 4.046.18.042.292.157.283.365a.412.412 0 0 1-.322.398c-.458.074-.936.073-1.394.073zm-4.101 2.418a14.216 14.216 0 0 1-2.307-.214c-1.202-.214-2.208-.582-3.072-1.13C1.41 20.095.163 17.786.014 15.048c-.037-.65-.11-1.89 1.427-1.797.638.033 1.653.343 2.368.548.887.247 1.314.933 1.314 1.608 0 3.858 3.494 6.408 5.02 6.408.654 0 .414.701.127.779-.502.136-1.15.153-1.413.153zM3.525 11.419c-.605-.109-1.194-.358-1.768-.5C-.018 10.479.284 8.688.45 8.196c1.617-4.757 6.746-6.35 10.887-6.773 3.898-.4 7.978-.092 11.778.967.31.083 1.269.327.718.891-.35.358-1.7-.016-2.073-.041-2.23-.167-4.434-.192-6.656.15-2.349.357-4.768 1.099-6.71 2.665-.938.758-1.76 1.723-2.313 2.866-.144.3-.256.6-.354.9-.11.327-.47 1.91-2.215 1.6zm9.94.917c.332-1.488 1.81-3.848 6.385-3.686 1.05.033.57.749.052.731-2.586-.09-3.815 1.578-4.457 3.27-.219.546-.68.626-1.271.53-.415-.074-.866-.123-.71-.846Z"/>',
+};
+function brandSvg(name,size){return `<svg width="${size||16}" height="${size||16}" viewBox="0 0 24 24" fill="currentColor">${BRAND[name]}</svg>`;}
 const NODES=[
-  {id:'commit', accent:'#4d8bff', t:'Commit', s:'git push · PR opened', icon:'commit'},
-  {id:'crowdin', accent:'#43d4c0', t:'Crowdin', s:'string ingested', icon:'globe'},
+  {id:'commit', accent:'#4d8bff', t:'Commit', s:'git push · PR opened', icon:'github', brand:true},
+  {id:'crowdin', accent:'#43d4c0', t:'Crowdin', s:'string ingested', icon:'crowdin', brand:true},
   {id:'sentinel', accent:'#2fe39a', t:'Loc Sentinel', s:'MT · glossary · QA gates', icon:'shield', hero:true},
-  {id:'slack', accent:'#8b7bff', t:'Slack review', s:'#de #pt #es', mono:true, icon:'chat'},
+  {id:'slack', accent:'#8b7bff', t:'Slack review', s:'#de #pt #es', mono:true, icon:'slack', brand:true},
   {id:'prod', accent:'#2fe39a', t:'Production', s:'main', mono:true, icon:'deploy'},
 ];
 
@@ -309,7 +322,7 @@ const STRINGS=[
 ];
 const COACH={
   de:{cls:'g',emoji:'👀',role:'German reviewer',pre:"This one’s clean — ",action:'Approve',post:' it.',rec:'approve'},
-  pt:{cls:'b',emoji:'✏️',role:'Brazilian reviewer',pre:'Title Case slipped in — ',action:'Edit',post:' it to sentence case.',rec:'edit'},
+  pt:{cls:'b',emoji:'✏️',role:'Brazilian Portuguese reviewer',pre:'Title Case slipped in — ',action:'Edit',post:' it to sentence case.',rec:'edit'},
   es:{cls:'r',emoji:'🚫',role:'Spanish reviewer',pre:'Override it — ',action:'Reject',post:' it and it goes back to a human, never ships.',rec:'reject'},
 };
 const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -326,22 +339,26 @@ function renderGraphSkeleton(){
     if(i>0){const v=(i===3)?' v':''; html+=`<div class="wire${v}" id="w${i-1}"><span class="pkt"></span></div>`;}
     html+=`<div class="node${n.hero?' hero':''}" id="n-${n.id}" style="--accent:${n.accent}">
       <div class="glow"></div><div class="done"></div>
-      <div class="tile">${svg(n.icon, n.hero?'#06140d':n.accent, 17)}</div>
+      <div class="tile">${n.brand?brandSvg(n.icon,16):svg(n.icon,null,17)}</div>
       <div class="ttl">${n.t}</div><div class="nsub${n.mono?' mono':''}">${n.s}</div></div>`;
   });
   el.innerHTML=html;
 }
-function setGraph(activeId, doneIds, activeWires, status){
+function setGraph(activeId, doneIds, doneWires, activeWires, status){
   NODES.forEach(n=>{const e=$('n-'+n.id);e.classList.toggle('active',n.id===activeId);e.classList.toggle('done',doneIds.includes(n.id));});
-  [0,1,2,3].forEach(i=>{const w=$('w'+i);if(!w)return;w.classList.toggle('active',activeWires.includes(i));w.classList.toggle('done',!activeWires.includes(i)&&i< (doneIds.length-1));});
+  [0,1,2,3].forEach(i=>{const w=$('w'+i);if(!w)return;
+    w.classList.toggle('active',activeWires.includes(i));
+    w.classList.toggle('done',doneWires.includes(i)&&!activeWires.includes(i));});
   $('gstat').textContent=status;
 }
 function graphFor(){
-  if(getMode()==='free'){setGraph('sentinel',['commit','crowdin'],[], 'Free play — translating live');return;}
-  if(view==='pick') setGraph('commit',[],[], selectedKey?'Commit ready — open the pull request':'Waiting for a developer to ship a string');
-  else if(view==='pipeline') setGraph('sentinel',['commit','crowdin'],[0,1,2,3], 'Translating · enforcing glossary · running QA gates');
-  else if(view==='review') setGraph('slack',['commit','crowdin','sentinel'],[2], 'Awaiting human review in #'+channel+'-l10n');
-  else if(view==='result') setGraph('prod',['commit','crowdin','sentinel','slack'],[], 'Approved translations merged to production');
+  // only the edge of the flow that is HAPPENING gets a traveling packet;
+  // un-reached nodes/wires stay deactivated (dim).
+  if(getMode()==='free'){setGraph('sentinel',['commit','crowdin'],[0,1],[],'Free play — translating live');return;}
+  if(view==='pick') setGraph('commit',[],[],[0], selectedKey?'Commit ready — open the pull request':'Waiting for a developer to ship a string');
+  else if(view==='pipeline') setGraph('sentinel',['commit','crowdin'],[0,1],[2],'Translating · enforcing glossary · running QA gates');
+  else if(view==='review') setGraph('slack',['commit','crowdin','sentinel'],[0,1,2],[],'Awaiting human review in #'+channel+'-l10n');
+  else if(view==='result') setGraph('prod',['commit','crowdin','sentinel','slack'],[0,1,2,3],[],'Approved translations merged to production');
 }
 
 /* ---------- boot ---------- */
@@ -435,9 +452,9 @@ function reviewCardHTML(ch){
   } else {
     const rec=COACH[ch].rec;
     bottom=`<div class="decide">
-      <button class="${rec==='approve'?'rec-approve':''}" onclick="approve('${ch}')">Approve</button>
-      <button class="${rec==='edit'?'rec-edit':''}" onclick="startEdit('${ch}')">Edit</button>
-      <button class="${rec==='reject'?'rec-reject':''}" onclick="startReject('${ch}')">Reject</button></div>
+      <button class="${rec==='approve'?'rec-approve br-g':''}" onclick="approve('${ch}')">Approve</button>
+      <button class="${rec==='edit'?'rec-edit br-b':''}" onclick="startEdit('${ch}')">Edit</button>
+      <button class="${rec==='reject'?'rec-reject br-r':''}" onclick="startReject('${ch}')">Reject</button></div>
       <div id="inline-${ch}"></div>`;
   }
   return `<div class="msg"><div class="av">LS</div><div style="flex:1;min-width:0">
@@ -480,10 +497,10 @@ function stageReview(){
   <div class="nav"><button class="btn ghost" onclick="reset()">↺ Start over</button>${navRight()}</div>`;
 }
 function navRight(){
-  if(!decisions[channel]) return `<span class="h">↩ take the action above</span>`;
+  if(!decisions[channel]) return `<span class="h">↩ take the action above to continue</span>`;
   const order=['de','pt','es'], i=order.indexOf(channel);
-  if(i<2) return `<button class="btn" onclick="goChan('${order[i+1]}')">Open #${order[i+1]}-l10n →</button>`;
-  return `<button class="btn green" onclick="toResult()">See the result →</button>`;
+  if(i<2) return `<button class="btn br-b" onclick="goChan('${order[i+1]}')">Open #${order[i+1]}-l10n →</button>`;
+  return `<button class="btn green br-g" onclick="toResult()">See the result →</button>`;
 }
 function goChan(ch){channel=ch; render();}
 function approve(ch){decisions[ch]={status:'approved'}; toast('✓ Approved in Crowdin · same English will reuse this from the TM instantly'); render();}
