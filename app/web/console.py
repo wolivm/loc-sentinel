@@ -82,9 +82,12 @@ def _market_meta(lang: str) -> dict:
             "inverted": bool(c.get("inverted_punctuation"))}
 
 
-@app.get("/", response_class=HTMLResponse)
-def index() -> str:
-    return INDEX.read_text(encoding="utf-8")
+@app.get("/")
+def index() -> HTMLResponse:
+    # No-cache so iterative design changes always reach the browser (the inline
+    # <style> lives in this HTML, so a stale cache shows stale CSS).
+    return HTMLResponse(INDEX.read_text(encoding="utf-8"),
+                        headers={"Cache-Control": "no-cache, no-store, must-revalidate"})
 
 
 @app.get("/favicon.svg")
