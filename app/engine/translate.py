@@ -20,17 +20,16 @@ from app.engine.sot import SoT
 
 CACHE_FILE = CACHE_DIR / "translations.json"
 
-_TARGET_SCHEMA = {
-    "type": "object",
-    "properties": {
-        "target": {
-            "type": "string",
-            "description": "The translated UI string, following all rules. Target language only.",
-        }
-    },
-    "required": ["target"],
-    "additionalProperties": False,
-}
+def _clean_target(text: str) -> str:
+    """Strip whitespace, a leading 'Translation:'-style label, and one layer of
+    surrounding quotes — defensive parsing of a plain-text model reply."""
+    t = (text or "").strip()
+    for label in ("translation:", "target:", "output:"):
+        if t.lower().startswith(label):
+            t = t[len(label):].strip()
+    if len(t) >= 2 and t[0] in "\"'“”«»" and t[-1] in "\"'“”«»":
+        t = t[1:-1].strip()
+    return t
 
 
 # --------------------------------------------------------------------------- #
@@ -69,7 +68,8 @@ def _user_turn(source_en: str, key: str, context: str, is_error_hint: bool) -> s
     ph = list(extract_placeholders(source_en).elements())
     ph_line = (", ".join(sorted(set(ph))) if ph else "(none)")
     return (
-        "Translate this English UI string. Return ONLY the target translation in the `target` field.\n"
+        "Translate this English UI string into the target language. Output ONLY the translated "
+        "string itself — no quotes, no label, no notes, no explanation.\n"
         f"key: {key or '(none)'}\n"
         f"context: {context or '(none)'}\n"
         f"placeholders that MUST appear verbatim: {ph_line}\n"
@@ -105,20 +105,16 @@ def translate(source_en: str, lang: str, sot: SoT, *, key: str = "", context: st
     client = anthropic.Anthropic(api_key=effective_key)
     resp = client.messages.create(
         model=settings.anthropic_model,
-        max_tokens=1024,
+        max_tokens=512,
         system=[{
             "type": "text",
             "text": sot.system_prefix(),
             "cache_control": {"type": "ephemeral"},   # cache the SoT prefix
         }],
-        output_config={
-            "effort": "low",  # mechanical, constrained task — low effort is enough
-            "format": {"type": "json_schema", "schema": _TARGET_SCHEMA},
-        },
         messages=[{"role": "user", "content": _user_turn(source_en, key, context, is_error_hint)}],
     )
-    text = next((b.text for b in resp.content if b.type == "text"), "{}")
-    target = json.loads(text).get("target", "").strip()
+    text = next((b.text for b in resp.content if b.type == "text"), "")
+    target = _clean_target(text)
     if prefer_cache and target:
         cache_put(source_en, lang, target)   # learn it for next time
     return {"target": target, "origin": "model"}
