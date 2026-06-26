@@ -116,6 +116,22 @@ def _addstrings_real(n: int):
             log.warning("addstrings create failed for %s: %s", ident, e)
     return created, None
 
+
+def _addstrings_respond(respond, n: int) -> None:
+    created, err = _addstrings_real(n)
+    if err:
+        respond(err)
+        return
+    s = get_settings()
+    respond(
+        f"🧪 Injected *{len(created)}* untranslated string(s) into *{s.platform_label}* "
+        f"(Crowdin file `{DEMO_FILE}`) — held back from the auto-pipeline so *you* drive them.\n\n"
+        f"Now test the live numbers:\n"
+        f"• `/loc coverage` → translated% just dropped (real)\n"
+        f"• `/loc untranslated` → shows the {len(created)} per market, with *Localize now*\n"
+        f"• click *Localize now* → review cards appear in the language channels + proposals written to Crowdin\n"
+        f"• `/loc pending` → the {len(created)} awaiting review · Approve them → it drops")
+
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("slack.bot")
 
@@ -222,19 +238,7 @@ def on_reject_submit(ack, body, client, view):
 @app.command("/addstrings")
 def on_addstrings(ack, respond, command):
     ack()
-    created, err = _addstrings_real(_parse_n(command.get("text")))
-    if err:
-        respond(err)
-        return
-    s = get_settings()
-    respond(
-        f"🧪 Injected *{len(created)}* untranslated string(s) into *{s.platform_label}* "
-        f"(Crowdin file `{DEMO_FILE}`) — held back from the auto-pipeline so *you* drive them.\n\n"
-        f"Now test the live numbers:\n"
-        f"• `/loc coverage` → translated% just dropped (real)\n"
-        f"• `/loc untranslated` → shows the {len(created)} per market, with *Localize now*\n"
-        f"• click *Localize now* → review cards appear in the language channels + proposals written to Crowdin\n"
-        f"• `/loc pending` → the {len(created)} awaiting review · Approve them → it drops")
+    _addstrings_respond(respond, _parse_n(command.get("text")))
 
 
 @app.command("/loc")
@@ -263,6 +267,8 @@ def on_loc(ack, respond, command):
         respond(_pending_text(_resolve_lang(rest)))
     elif sub == "untranslated":
         respond(_untranslated_blocks(_resolve_lang(rest)))
+    elif sub == "addstrings":
+        _addstrings_respond(respond, _parse_n(rest))
     elif sub == "demo":
         _demo_respond(respond, _parse_n(rest))
     else:
