@@ -114,27 +114,33 @@ def build_card(ticket: dict, unit: dict, resolved: dict | None = None) -> dict:
             "attachments": [{"color": HEX.get(color, "#4C8DFF"), "blocks": blocks}]}
 
 
+def _web():
+    """A WebClient that retries on 429 (safe for bursts of cards)."""
+    from slack_sdk import WebClient
+    from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
+    w = WebClient(token=get_settings().slack_bot_token)
+    w.retry_handlers.append(RateLimitErrorRetryHandler(max_retry_count=3))
+    return w
+
+
 def post_review_cards(ticket: dict, units: list[dict]) -> dict:
     """Post one review card per unit to the target language's channel."""
-    from slack_sdk import WebClient
-
     s = get_settings()
     if not s.slack_bot_token:
         raise RuntimeError("Slack not configured (SLACK_BOT_TOKEN).")
     channel = s.channel_for(ticket["target_lang"])
     if not channel:
         raise RuntimeError(f"No Slack channel for {ticket['target_lang']}.")
-    web = WebClient(token=s.slack_bot_token)
+    web = _web()
     for u in units:
         web.chat_postMessage(channel=channel, **build_card(ticket, u))
     return {"count": len(units), "channel": channel}
 
 
 def post_summary(*, n_strings: int, per_lang: list[dict], platform: str,
-                 pipeline: str = "GitHub → Crowdin → Loc Sentinel") -> None:
+                 pipeline: str = "GitHub → Crowdin → Loc Sentinel",
+                 string_keys: list[str] | None = None) -> None:
     """Post the platform digest to the #localization summary channel."""
-    from slack_sdk import WebClient
-
     s = get_settings()
     if not s.slack_bot_token or not s.summary_channel:
         return
@@ -160,13 +166,19 @@ def post_summary(*, n_strings: int, per_lang: list[dict], platform: str,
                                     "text": f"📦 {platform} · {n_strings} new string{'s' if n_strings != 1 else ''} localized",
                                     "emoji": True}},
         {"type": "section", "text": {"type": "mrkdwn",
-                                     "text": f"New source strings pushed to Crowdin and run through the pipeline.\n*Project:* {platform}   ·   *Flow:* {pipeline}"}},
+                                     "text": f"New source strings ingested and run through the pipeline.\n*Project:* {platform}   ·   *Flow:* {pipeline}   ·   *Languages:* {', '.join(p['name'] for p in per_lang)}"}},
+    ]
+    if string_keys:
+        shown = ", ".join(f"`{k}`" for k in string_keys[:10])
+        more = f" +{len(string_keys) - 10} more" if len(string_keys) > 10 else ""
+        blocks.append({"type": "context", "elements": [{"type": "mrkdwn", "text": f"📝 Strings: {shown}{more}"}]})
+    blocks += [
         {"type": "divider"},
         {"type": "section", "fields": fields[:10]},
         {"type": "context", "elements": [{"type": "mrkdwn",
-                                          "text": f"✅  *{auto}/{total}* auto-handled (rubber-stamp)   ·   ⚠️  *{need}* need a human   ·   reviews are queued in the language channels above"}]},
+                                          "text": f"✅  *{auto}/{total}* auto-handled (rubber-stamp)   ·   ⚠️  *{need}* need a human   ·   reviews queued in the language channels above"}]},
     ]
-    WebClient(token=s.slack_bot_token).chat_postMessage(
+    _web().chat_postMessage(
         channel=s.summary_channel,
         text=f"{platform}: {n_strings} new string(s) localized across {len(per_lang)} markets",
         attachments=[{"color": "#4C8DFF", "blocks": blocks}],

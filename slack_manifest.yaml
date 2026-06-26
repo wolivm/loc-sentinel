@@ -16,6 +16,10 @@ features:
       description: Localization self-serve — coverage, untranslated, requests, status
       usage_hint: "untranslated [lang] | coverage [lang] | pending [lang] | request <text> | status [T12] | queue [lang]"
       should_escape: false
+    - command: /addstrings
+      description: "Demo: inject N strings and fire the whole pipeline (digest + review cards)"
+      usage_hint: "5"
+      should_escape: false
 
 oauth_config:
   scopes:

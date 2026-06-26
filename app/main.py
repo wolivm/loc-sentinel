@@ -150,7 +150,8 @@ def process_strings(strings: list[dict], langs: list[str], *, source: str,
         try:
             from app.slack.cards import post_summary
             post_summary(n_strings=len(strings), per_lang=per_lang_summary,
-                         platform=get_settings().platform_label)
+                         platform=get_settings().platform_label,
+                         string_keys=[s.get("key", "") for s in strings])
         except Exception as ex:  # noqa: BLE001
             log.info("Slack summary skipped: %s", ex)
     return results

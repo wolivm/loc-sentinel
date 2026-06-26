@@ -26,7 +26,7 @@ def _crowdin_writeback(unit: dict, ticket: dict, text: str) -> str:
         return "crowdin not configured (skipped)"
     sid = unit.get("crowdin_string_id")
     if not sid:
-        return "no crowdin_string_id"
+        return ""  # demo / non-Crowdin string — nothing to write back
     locale = load_sot(ticket["target_lang"]).conventions.get("crowdin_locale", ticket["target_lang"])
     try:
         client.approve_text(int(sid), locale, text)

@@ -36,6 +36,42 @@ def _resolve_lang(arg: str):
             return l
     return None
 
+
+# Curated demo strings (drawn from the sample pool), ordered so a small N gives
+# the full green/amber/red spread: save_button → pt-BR Title-Case WARN,
+# loading_notes → es ellipsis ERROR, plus clean ones. For /addstrings & /loc demo.
+DEMO_ORDER = ["save_button", "loading_notes", "reminders_today", "streak_safe", "sync_now",
+              "welcome_user", "delete_confirm_body", "settings_title", "focus_promo", "habit_done_cheer"]
+
+
+def _parse_n(text: str, default: int = 5) -> int:
+    for tok in (text or "").split():
+        if tok.isdigit():
+            return max(1, min(int(tok), 10))
+    return default
+
+
+def _run_demo_batch(n: int) -> list[dict]:
+    """Synthesize N demo source strings and run the full pipeline (digest + per-lang
+    cards). Empty Crowdin id → no Crowdin writes, fully re-runnable."""
+    from app.sample_data import load_strings
+    samples = {s["key"]: s for s in load_strings()}
+    keys = [k for k in DEMO_ORDER if k in samples][:n]
+    strings = [{"source_en": samples[k]["source_en"], "key": k,
+                "context": samples[k]["context"], "crowdin_string_id": ""} for k in keys]
+    from app.main import process_strings
+    process_strings(strings, get_settings().langs, source="slack_demo", event_name="string.added")
+    return strings
+
+
+def _demo_respond(respond, n: int) -> None:
+    strings = _run_demo_batch(n)
+    s = get_settings()
+    chans = " ".join(f"<#{s.channel_for(l)}>" for l in s.langs)
+    respond(f"🧪 Added *{len(strings)}* demo string(s) to *{s.platform_label}* → "
+            f"digest in <#{s.summary_channel}>, *{len(strings)}* review card(s) in each of {chans}.\n"
+            f"Go *Approve / Edit / Reject* the cards, then try `/loc coverage`, `/loc pending`, `/loc untranslated`.")
+
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("slack.bot")
 
@@ -139,6 +175,12 @@ def on_reject_submit(ack, body, client, view):
 # --------------------------------------------------------------------------- #
 # Slash command: /loc request | status | queue
 # --------------------------------------------------------------------------- #
+@app.command("/addstrings")
+def on_addstrings(ack, respond, command):
+    ack()
+    _demo_respond(respond, _parse_n(command.get("text")))
+
+
 @app.command("/loc")
 def on_loc(ack, respond, command):
     ack()
@@ -165,6 +207,8 @@ def on_loc(ack, respond, command):
         respond(_pending_text(_resolve_lang(rest)))
     elif sub == "untranslated":
         respond(_untranslated_blocks(_resolve_lang(rest)))
+    elif sub == "demo":
+        _demo_respond(respond, _parse_n(rest))
     else:
         respond(
             "*Loc Sentinel — what you can ask:*\n"
