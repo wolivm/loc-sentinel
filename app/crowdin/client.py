@@ -115,6 +115,31 @@ class CrowdinClient:
         data = self._request("POST", f"/projects/{self.project_id}/translations/builds", json={})
         return data.get("data", {})
 
+    # --- stakeholder self-serve reads --------------------------------------
+    def language_progress(self) -> list[dict]:
+        """Per-language translation/approval progress (for /loc coverage & /loc pending).
+        Each item: {languageId, translationProgress, approvalProgress, phrases:{total,translated,approved}}."""
+        data = self._request("GET", f"/projects/{self.project_id}/languages/progress",
+                             params={"limit": 100})
+        return [item["data"] for item in data.get("data", [])]
+
+    def untranslated_source_strings(self, language_id: str, limit: int = 200) -> list[dict]:
+        """Source strings with NO translation yet in `language_id` (for /loc untranslated
+        + [Localize now]). O(N) — fine for a project of this size; a CroQL filter
+        (`count of translations where (language = "xx") = 0`) would scale this."""
+        out = []
+        for s in self.list_strings(limit=limit):
+            sid = s.get("id")
+            if not s.get("text"):
+                continue
+            try:
+                if not self.list_translations(int(sid), language_id):
+                    out.append({"id": sid, "identifier": s.get("identifier", ""),
+                                "text": s.get("text", ""), "context": s.get("context", "")})
+            except CrowdinError:
+                continue
+        return out
+
 
 def get_client() -> CrowdinClient | None:
     """Return a client if Crowdin is configured, else None (demo-safe)."""

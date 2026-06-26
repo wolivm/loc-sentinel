@@ -13,8 +13,8 @@ features:
     always_online: true
   slash_commands:
     - command: /loc
-      description: Submit, track, and view localization requests
-      usage_hint: "request <what you need> | status [T12] | queue [de|pt-BR|es]"
+      description: Localization self-serve — coverage, untranslated, requests, status
+      usage_hint: "untranslated [lang] | coverage [lang] | pending [lang] | request <text> | status [T12] | queue [lang]"
       should_escape: false
 
 oauth_config:

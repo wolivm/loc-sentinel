@@ -93,6 +93,19 @@ def test_build_card_shapes_and_color():
     assert not any(b.get("type") == "actions" for b in resolved["attachments"][0]["blocks"])
 
 
+def test_selfserve_commands(monkeypatch):
+    import app.slack.bot as bot
+    assert bot._resolve_lang("de") == "de"
+    assert bot._resolve_lang("pt") == "pt-BR"
+    assert bot._resolve_lang("es-ES") == "es"
+    assert bot._resolve_lang("zz") is None
+    # with no Crowdin client, the self-serve commands degrade gracefully (no crash)
+    monkeypatch.setattr(bot, "get_client", lambda: None)
+    assert "isn't configured" in bot._coverage_text(None)
+    assert "isn't configured" in bot._pending_text(None)
+    assert bot._untranslated_blocks(None)["text"].startswith("⚠️")
+
+
 def test_channel_routing():
     from app.config import Settings
     s = Settings(_env_file=None, slack_channel_de="C_DE", slack_channel_es="C_ES",

@@ -17,10 +17,24 @@ from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 
 from app.config import get_settings
+from app.crowdin.client import get_client
+from app.engine.sot import available_langs, load_sot
 from app.planner import tickets
 from app.planner.db import init_db
 from app.slack.actions import finalize_unit
 from app.slack.cards import build_card
+
+
+def _resolve_lang(arg: str):
+    """Map a loose lang arg ('de', 'pt', 'es-ES') to one of our SoT langs."""
+    a = (arg or "").strip().lower()
+    if not a:
+        return None
+    for l in available_langs():
+        if l.lower() == a or l.lower().startswith(a) \
+           or load_sot(l).conventions.get("crowdin_locale", "").lower() == a:
+            return l
+    return None
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("slack.bot")
@@ -145,8 +159,118 @@ def on_loc(ack, respond, command):
         respond(_status_text(rest.strip(), user))
     elif sub == "queue":
         respond(_queue_text(rest.strip()))
+    elif sub == "coverage":
+        respond(_coverage_text(_resolve_lang(rest)))
+    elif sub == "pending":
+        respond(_pending_text(_resolve_lang(rest)))
+    elif sub == "untranslated":
+        respond(_untranslated_blocks(_resolve_lang(rest)))
     else:
-        respond("Usage:\n• `/loc request <what you need>`\n• `/loc status [T12]`\n• `/loc queue [de|pt-BR|es]`")
+        respond(
+            "*Loc Sentinel — what you can ask:*\n"
+            "• `/loc untranslated [lang]` — what's not translated yet, with a *Localize now* button\n"
+            "• `/loc coverage [lang]` — translated % / approved % per market (live from Crowdin)\n"
+            "• `/loc pending [lang]` — strings awaiting human review\n"
+            "• `/loc request <what you need>` — open a request (auto-triaged; looped to a human if complex)\n"
+            "• `/loc status [T12]` — track a request\n"
+            "• `/loc queue [lang]` — open work by language / assignee")
+
+
+def _esc(s: str) -> str:
+    return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+
+
+def _target_langs(resolved):
+    return [resolved] if resolved else get_settings().langs
+
+
+def _coverage_text(resolved) -> str:
+    client = get_client()
+    if client is None:
+        return "⚠️ Crowdin isn't configured — can't read live coverage."
+    prog = {p.get("languageId"): p for p in client.language_progress()}
+    lines = ["*📊 Translation coverage* _(live from Crowdin)_"]
+    for lang in _target_langs(resolved):
+        sot = load_sot(lang)
+        p = prog.get(sot.conventions.get("crowdin_locale", lang)) or {}
+        ph = p.get("phrases") or {}
+        lines.append(
+            f"{sot.flag} *{sot.market_name}* — {p.get('translationProgress', 0)}% translated · "
+            f"{p.get('approvalProgress', 0)}% approved  ({ph.get('translated', '?')}/{ph.get('total', '?')} strings)")
+    return "\n".join(lines)
+
+
+def _pending_text(resolved) -> str:
+    client = get_client()
+    if client is None:
+        return "⚠️ Crowdin isn't configured."
+    prog = {p.get("languageId"): p for p in client.language_progress()}
+    s = get_settings()
+    lines = ["*🕊️ Awaiting human review* _(translated, not yet approved)_"]
+    any_pending = False
+    for lang in _target_langs(resolved):
+        sot = load_sot(lang)
+        ph = (prog.get(sot.conventions.get("crowdin_locale", lang)) or {}).get("phrases") or {}
+        pend = max(0, (ph.get("translated", 0) or 0) - (ph.get("approved", 0) or 0))
+        if pend:
+            any_pending = True
+            ch = s.channel_for(lang)
+            lines.append(f"{sot.flag} *{sot.market_name}* — *{pend}* pending" + (f" → <#{ch}>" if ch else ""))
+        else:
+            lines.append(f"{sot.flag} *{sot.market_name}* — ✅ none pending")
+    if not any_pending:
+        lines.append("\n🎉 Nothing waiting — everything's reviewed.")
+    return "\n".join(lines)
+
+
+def _untranslated_blocks(resolved) -> dict:
+    client = get_client()
+    if client is None:
+        return {"text": "⚠️ Crowdin isn't configured."}
+    blocks = [{"type": "header", "text": {"type": "plain_text", "text": "🌍 Untranslated strings", "emoji": True}}]
+    total = 0
+    for lang in _target_langs(resolved):
+        sot = load_sot(lang)
+        un = client.untranslated_source_strings(sot.conventions.get("crowdin_locale", lang))
+        total += len(un)
+        if un:
+            preview = ", ".join(_esc(u["text"][:28]) for u in un[:3])
+            blocks.append({"type": "section",
+                           "text": {"type": "mrkdwn", "text": f"{sot.flag} *{sot.market_name}* — *{len(un)}* untranslated\n_{preview}…_"}})
+            blocks.append({"type": "actions", "elements": [{
+                "type": "button", "style": "primary",
+                "text": {"type": "plain_text", "text": f"⚡ Localize {sot.market_name} now"},
+                "action_id": "loc_localize", "value": json.dumps({"lang": lang})}]})
+        else:
+            blocks.append({"type": "context", "elements": [{"type": "mrkdwn", "text": f"{sot.flag} *{sot.market_name}* — ✅ all caught up"}]})
+    if total == 0:
+        blocks.append({"type": "context", "elements": [{"type": "mrkdwn", "text": "🎉 Everything is translated — nothing to do."}]})
+    return {"blocks": blocks, "response_type": "in_channel", "text": "Untranslated strings"}
+
+
+# --------------------------------------------------------------------------- #
+# [Localize now] — a stakeholder triggers the pipeline from Slack
+# --------------------------------------------------------------------------- #
+@app.action("loc_localize")
+def on_localize(ack, body, respond):
+    ack()
+    lang = json.loads(body["actions"][0]["value"])["lang"]
+    sot = load_sot(lang)
+    client = get_client()
+    if client is None:
+        respond("⚠️ Crowdin isn't configured.")
+        return
+    un = client.untranslated_source_strings(sot.conventions.get("crowdin_locale", lang))
+    if not un:
+        respond(f"{sot.flag} {sot.market_name}: already all caught up ✅")
+        return
+    strings = [{"source_en": u["text"], "key": u["identifier"] or str(u["id"]),
+                "context": u["context"], "crowdin_string_id": u["id"]} for u in un]
+    from app.main import process_strings
+    process_strings(strings, [lang], source="slack_localize", event_name="string.added")
+    ch = get_settings().channel_for(lang)
+    respond(f"⚡ Localizing *{len(strings)}* string(s) into {sot.flag} *{sot.market_name}* — "
+            f"proposals written to Crowdin, review cards posted to <#{ch}>. One human approve away from shipped.")
 
 
 def _status_text(arg: str, user: str) -> str:
