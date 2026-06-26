@@ -35,8 +35,14 @@ confidence badge and clean QA, click **Approve**. Done.
 
 ## How it works (the hero flow)
 
+**Continuous localization — no spreadsheets, no manual uploads.** A developer commits an
+English string; it flows all the way to shipped, reviewed translations with one human click.
+
 ```
-Crowdin upload ──webhook──▶ FastAPI (verify sig, idempotent) ──▶ open Ticket
+  dev edits i18n/en.json ── git push ──▶ Crowdin (GitHub integration) ── webhook ──▶
+        │
+        ▼
+  FastAPI (verify signature, idempotent per string+lang) ──▶ open Ticket
         │
         ▼
   Deterministic RAG engine, per string:
@@ -47,14 +53,22 @@ Crowdin upload ──webhook──▶ FastAPI (verify sig, idempotent) ──▶
     5. Score    confidence → how the review is framed (green vs amber)
         │
         ▼
-  Write proposal back to Crowdin (NOT approved) ──▶ Slack review card in #localization
+  Write proposal back to Crowdin (NOT approved)
+        │
+        ▼
+  Review cards route to per-language channels:   #de-l10n   #pt-l10n   #es-l10n
+  Platform digest ("App · N strings localized")  ──▶          #localization
         │
         ▼
   ONE human: Approve → Crowdin approve + append to TM · Edit → save + learn · Reject → route to human
+        │
+        ▼
+  Crowdin pushes ONLY approved translations back to GitHub as a PR ──▶ merge ──▶ in production
 ```
 
 The confidence score changes **how** the review is presented (green = rubber-stamp, amber =
-"check these flags"), but there is **always exactly one human review.**
+"check these flags"), but there is **always exactly one human review** — and `crowdin.yml`'s
+`export_only_approved` guarantees nothing unreviewed ever reaches the repo.
 
 ---
 
