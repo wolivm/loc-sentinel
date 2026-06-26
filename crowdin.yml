@@ -16,3 +16,8 @@ files:
   - source: /i18n/en.json
     translation: /i18n/%locale%.json
     type: json
+    # Only HUMAN-APPROVED translations are written back to the repo. Anything the
+    # QA gates flagged (or that hasn't been reviewed yet) is NOT shipped — it
+    # falls back to the English source until a human approves it in Slack. This
+    # is the thesis as config: nothing reaches production without the one review.
+    export_only_approved: true
