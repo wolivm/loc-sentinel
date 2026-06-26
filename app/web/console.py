@@ -115,6 +115,8 @@ async def translate_endpoint(request: Request) -> JSONResponse:
     text = (body.get("text") or "").strip()
     if not text:
         return JSONResponse({"error": "Enter an English string."}, status_code=400)
+    if len(text) > 280:
+        return JSONResponse({"error": "For the hosted demo, keep strings under 280 characters."}, status_code=400)
     key = body.get("key", "")
     context = body.get("context", "")
     byo = (body.get("byo_key") or "").strip() or None
