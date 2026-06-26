@@ -14,7 +14,7 @@
 We didn't just attach test data — we made the whole product **clickable with no accounts and no keys**.
 
 ### 1. Hosted Console (zero setup) — *recommended for judges*
-> 🎮 **Live link:** _add after deploying — see [DEPLOY.md](DEPLOY.md) (one click on Render)_
+> 🎮 **Live link:** **https://loc-sentinel-console.onrender.com**  _(free tier — first load may take ~30–60s to wake)_
 
 Paste any English UI string (or click a sample) and watch the **real** deterministic pipeline run:
 TM reuse, glossary enforcement, the QA ERROR/WARN gates, confidence scoring, and the **same string

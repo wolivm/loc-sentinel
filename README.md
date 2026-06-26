@@ -104,7 +104,8 @@ change. (That's the hackathon's "flexible / scalable" requirement, satisfied by 
 
 ## Try it yourself (no accounts, no keys)
 
-> 🎮 **Hosted demo:** _(link added once deployed)_
+> 🎮 **Hosted demo — try it now, no login:** **https://loc-sentinel-console.onrender.com**
+> _(free tier — first load may take ~30–60s to wake)_
 >
 > Or run the self-serve console locally — see [Setup](#setup). The deterministic half (TM, QA,
 > glossary, market rules) runs with **no API key**; sample strings use a committed cache of real
