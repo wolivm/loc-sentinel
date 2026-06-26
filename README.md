@@ -135,6 +135,11 @@ python scripts/seed.py          # load the Nimbus Source of Truth + TM
 **Go live** (real Crowdin + Slack): see [`SLACK_SETUP.md`](SLACK_SETUP.md) and the
 [Live setup](#live-setup) section below.
 
+> 👥 **Running it on your own machine / sharing with the team?** The full step-by-step (every `.env`
+> key + where to get it, Slack, Crowdin's GitHub integration, tunnels, troubleshooting) is in
+> **[SETUP.md](SETUP.md)**. How to manage the **guidelines / Source of Truth** is in
+> **[data/sot/README.md](data/sot/README.md)**. Security model + audit: **[SECURITY.md](SECURITY.md)**.
+
 ---
 
 ## Repository layout
@@ -160,6 +165,11 @@ scripts/           seed.py, simulate_event.py (offline demo fallback)
 - **[DEMO.md](DEMO.md)** — the 3–5 minute demo script.
 - **[SLACK_SETUP.md](SLACK_SETUP.md)** — click-by-click Slack tokens. **[DEPLOY.md](DEPLOY.md)** — host the Console.
 - **[SUBMISSION.md](SUBMISSION.md)** — hackathon submission checklist + how to try our solution.
+
+### For developers / your team
+- **[SETUP.md](SETUP.md)** — full setup from a fresh clone (every `.env` key, all integrations, troubleshooting).
+- **[data/sot/README.md](data/sot/README.md)** — manage the guidelines / glossary / TM (add a market by adding data).
+- **[SECURITY.md](SECURITY.md)** — secret-handling model + audit + what to do before a public deploy.
 
 ---
 
