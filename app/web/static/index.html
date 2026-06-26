@@ -3,227 +3,556 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Loc Sentinel · Console</title>
+<title>Loc Sentinel · Interactive Demo</title>
 <style>
   :root{
-    --bg:#0e1116; --panel:#161b22; --panel2:#1c2230; --line:#2a3240;
+    --bg:#0d1014; --panel:#161b22; --panel2:#1c2330; --line:#2a3240;
     --txt:#e6edf3; --dim:#8b949e; --accent:#4c8dff;
     --green:#2ea043; --amber:#d29922; --red:#da3633;
+    --slack-side:#19171d; --slack-side2:#3f0e40; --slack-chat:#1a1d21; --slack-card:#222529;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--txt);
-    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+  html,body{margin:0}
+  body{background:radial-gradient(1200px 600px at 50% -10%,#16202e 0,var(--bg) 60%);
+    color:var(--txt);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:100vh}
   a{color:var(--accent)}
-  header{padding:22px 26px;border-bottom:1px solid var(--line);
-    display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  header h1{font-size:20px;margin:0}
+  /* header */
+  header{display:flex;align-items:center;gap:14px;padding:16px 24px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  header h1{font-size:19px;margin:0;letter-spacing:.2px}
   header .tag{color:var(--dim);font-size:13px}
-  .pill{font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
-  .pill.live{color:var(--green);border-color:var(--green)}
-  main{max-width:1180px;margin:0 auto;padding:22px}
-  .panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px}
-  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-  .chip{background:var(--panel2);border:1px solid var(--line);color:var(--txt);
-    padding:6px 11px;border-radius:8px;font-size:13px;cursor:pointer}
-  .chip:hover{border-color:var(--accent)}
-  .chip.warnflag{border-color:var(--amber)} .chip.errflag{border-color:var(--red)}
-  textarea,input{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--txt);
-    border-radius:8px;padding:9px 11px;font-size:14px;font-family:inherit}
-  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-top:10px}
-  .row > div{flex:1;min-width:160px}
+  .modes{margin-left:auto;display:flex;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px}
+  .modes button{background:transparent;border:none;color:var(--dim);padding:6px 12px;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600}
+  .modes button.on{background:var(--accent);color:#fff}
+  main{max-width:1080px;margin:0 auto;padding:22px}
+  /* wizard steps */
+  .steps{display:flex;gap:8px;align-items:center;justify-content:center;margin:6px 0 22px;color:var(--dim);font-size:13px;flex-wrap:wrap}
+  .steps .s{display:flex;align-items:center;gap:8px;padding:6px 12px;border:1px solid var(--line);border-radius:999px}
+  .steps .s.on{border-color:var(--accent);color:var(--txt)}
+  .steps .s.done{border-color:var(--green);color:#7ee2a8}
+  .steps .num{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--panel2);font-size:11px}
+  .steps .s.on .num{background:var(--accent);color:#fff}
+  .steps .s.done .num{background:var(--green);color:#fff}
+  .steps .arrow{opacity:.4}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+  h2.lead{margin:0 0 4px;font-size:20px}
+  p.sub{margin:0 0 16px;color:var(--dim)}
+  .btn{background:var(--accent);border:none;color:#fff;padding:11px 20px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--dim);font-weight:600}
+  /* string picker */
+  .picker{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin:14px 0;max-height:320px;overflow:auto;padding:2px}
+  .pick{display:flex;flex-direction:column;gap:3px;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:11px 13px;cursor:pointer;transition:.15s}
+  .pick:hover{border-color:var(--accent)}
+  .pick.sel{border-color:var(--accent);box-shadow:0 0 0 2px rgba(76,141,255,.25)}
+  .pick .k{font-size:12px;color:var(--accent);font-family:ui-monospace,Menlo,monospace}
+  .pick .t{font-weight:600}
+  .pick .star{font-size:11px;color:var(--amber)}
+  /* diff */
+  .diff{background:#0b0f14;border:1px solid var(--line);border-radius:10px;padding:14px;font-family:ui-monospace,Menlo,monospace;font-size:13px;margin:6px 0 16px;overflow:auto}
+  .diff .fn{color:var(--dim);margin-bottom:8px}
+  .diff .ln{white-space:pre;color:#9da7b3}
+  .diff .add{background:rgba(46,160,67,.16);color:#9af0b8;border-radius:4px}
+  .diff .add::before{content:"+ "}
+  /* pipeline */
+  .pipe{display:flex;align-items:center;justify-content:center;gap:0;margin:30px 0}
+  .node{display:flex;flex-direction:column;align-items:center;gap:8px;opacity:.35;transition:.4s;min-width:120px}
+  .node.on{opacity:1}
+  .node .ic{width:58px;height:58px;border-radius:16px;display:grid;place-items:center;font-size:26px;background:var(--panel2);border:1px solid var(--line);transition:.4s}
+  .node.on .ic{border-color:var(--accent);box-shadow:0 0 22px rgba(76,141,255,.35);transform:translateY(-2px)}
+  .node small{color:var(--dim);font-size:12px}
+  .node.on small{color:var(--txt)}
+  .wire{height:2px;width:40px;background:var(--line);position:relative;overflow:hidden}
+  .wire.on::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:flow 1s linear infinite}
+  @keyframes flow{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+  .pipe-status{text-align:center;color:var(--dim);min-height:22px;margin-top:6px}
+  /* slack replica */
+  .slack{display:grid;grid-template-columns:230px 1fr;border:1px solid var(--line);border-radius:14px;overflow:hidden;min-height:560px;background:var(--slack-chat)}
+  .sidebar{background:var(--slack-side);padding:14px 10px;border-right:1px solid #000}
+  .ws{display:flex;align-items:center;gap:9px;padding:6px 8px 12px;border-bottom:1px solid #2a2630;margin-bottom:10px}
+  .ws .logo{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#4c8dff,#9b5cff);display:grid;place-items:center;font-weight:800;font-size:13px}
+  .ws b{font-size:14px}
+  .chan{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:7px;color:#bcc0c6;cursor:pointer;font-size:14px;position:relative}
+  .chan:hover{background:rgba(255,255,255,.05)}
+  .chan.active{background:#1164a3;color:#fff}
+  .chan .hash{opacity:.6}
+  .chan .dot{margin-left:auto;width:8px;height:8px;border-radius:50%;background:var(--accent);display:none}
+  .chan.unread .dot{display:block}
+  .chan.unread{color:#fff;font-weight:700}
+  .chat{display:flex;flex-direction:column}
+  .chat-head{padding:13px 18px;border-bottom:1px solid #000;font-weight:700;display:flex;align-items:center;gap:8px}
+  .chat-head .hash{color:var(--dim)}
+  .guide{margin:12px 18px 0;padding:12px 14px;border-radius:10px;background:linear-gradient(90deg,rgba(76,141,255,.16),rgba(76,141,255,.04));border:1px solid rgba(76,141,255,.35);font-size:14px;display:flex;align-items:center;gap:10px}
+  .guide .role{font-weight:700}
+  .msgs{padding:10px 18px 20px;overflow:auto;flex:1}
+  .msg{display:flex;gap:11px;padding:10px 0;animation:fadeUp .45s ease both}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  .msg .av{width:36px;height:36px;border-radius:9px;background:linear-gradient(135deg,#4c8dff,#9b5cff);display:grid;place-items:center;font-weight:800;font-size:13px;flex:0 0 auto}
+  .msg .body{flex:1;min-width:0}
+  .msg .who{font-weight:800;font-size:14px}
+  .msg .who .app{font-size:10px;background:#3a3f47;color:#cfd6df;padding:1px 5px;border-radius:4px;margin-left:6px;font-weight:700;vertical-align:middle}
+  .msg .who .ts{color:var(--dim);font-weight:400;font-size:12px;margin-left:7px}
+  /* card */
+  .att{border-left:4px solid var(--line);background:var(--slack-card);border-radius:8px;margin-top:6px;overflow:hidden}
+  .att.green{border-left-color:var(--green)} .att.amber{border-left-color:var(--amber)} .att.red{border-left-color:var(--red)}
+  .att .pad{padding:13px 15px}
+  .ahead{font-weight:800;font-size:15px;margin-bottom:8px}
+  .arow{display:flex;gap:26px;flex-wrap:wrap;margin-bottom:8px}
+  .arow .lab{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.4px}
+  .meter{letter-spacing:2px;font-size:13px}
+  .hr{height:1px;background:var(--line);margin:10px 0}
+  .src{color:var(--dim);border-left:3px solid var(--line);padding-left:9px;margin:2px 0 8px}
+  .tgt{font-size:17px;font-weight:700;margin:2px 0 8px;white-space:pre-wrap}
+  .ctx{color:var(--dim);font-size:12.5px;margin:4px 0}
+  .qa-ok{color:#7ee2a8;font-size:13px}
+  .qa-flag{font-size:13px;padding:6px 9px;border-radius:6px;margin:5px 0}
+  .qa-flag.ERROR{background:rgba(218,54,51,.14);color:#f3938f}
+  .qa-flag.WARN{background:rgba(210,153,34,.14);color:#e7c061}
+  .acts{display:flex;gap:8px;margin-top:11px}
+  .acts button{flex:1;border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--txt);transition:.15s}
+  .acts .approve{background:var(--green);border-color:var(--green);color:#fff}
+  .acts .reject{color:#f3938f;border-color:#5b2a2a}
+  .acts button:disabled{opacity:.3;cursor:default}
+  .acts button.glow{animation:glow 1.3s ease-in-out infinite}
+  @keyframes glow{0%,100%{box-shadow:0 0 0 0 rgba(76,141,255,.0)}50%{box-shadow:0 0 0 4px rgba(76,141,255,.35)}}
+  .resolved{margin-top:11px;padding:10px 12px;border-radius:8px;font-size:13.5px;animation:fadeUp .4s both}
+  .resolved.approved,.resolved.edited{background:rgba(46,160,67,.13);color:#9af0b8}
+  .resolved.rejected{background:rgba(218,54,51,.13);color:#f3938f}
+  .editbox{margin-top:9px;display:flex;gap:8px}
+  .editbox input{flex:1;background:#0b0f14;border:1px solid var(--accent);color:var(--txt);border-radius:8px;padding:9px 11px;font-size:15px}
+  .editbox button{border-radius:8px;padding:9px 14px;border:none;font-weight:700;cursor:pointer}
+  .editbox .save{background:var(--green);color:#fff}
+  .editbox .cancel{background:var(--panel2);color:var(--dim);border:1px solid var(--line)}
+  /* digest pills */
+  .digest-rows{display:flex;flex-direction:column;gap:7px;margin:8px 0}
+  .drow{display:flex;align-items:center;gap:10px;font-size:14px}
+  .pill{font-size:11px;padding:2px 9px;border-radius:999px;background:var(--panel2);color:var(--dim);border:1px solid var(--line)}
+  .pill.green{background:rgba(46,160,67,.16);color:#7ee2a8;border-color:transparent}
+  .pill.amber{background:rgba(210,153,34,.16);color:#e7c061;border-color:transparent}
+  .pill.red{background:rgba(218,54,51,.16);color:#f3938f;border-color:transparent}
+  /* toast */
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:#0b0f14;border:1px solid var(--line);border-radius:10px;padding:12px 18px;font-size:14px;opacity:0;transition:.3s;pointer-events:none;z-index:50;box-shadow:0 10px 40px rgba(0,0,0,.5);max-width:90vw}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  /* nav row */
+  .nav{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:10px;flex-wrap:wrap}
+  .nav .hint{color:var(--dim);font-size:13px}
+  /* finale */
+  .done-wrap{text-align:center;padding:10px}
+  .check{width:74px;height:74px;border-radius:50%;background:rgba(46,160,67,.15);display:grid;place-items:center;margin:6px auto 12px;font-size:36px;animation:pop .5s both}
+  @keyframes pop{0%{transform:scale(.5);opacity:0}70%{transform:scale(1.12)}100%{transform:scale(1);opacity:1}}
+  .recap{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:16px 0;text-align:left}
+  .recap .r{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px}
+  .recap .r .h{font-weight:700;margin-bottom:3px}
+  .recap .r small{color:var(--dim)}
+  .prbar{display:flex;align-items:center;gap:10px;justify-content:center;background:rgba(46,160,67,.1);border:1px solid rgba(46,160,67,.3);border-radius:10px;padding:12px;margin:8px 0}
+  /* free play */
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:14px}
+  .fp-row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+  .fp-row > div{flex:1;min-width:200px}
   label{font-size:12px;color:var(--dim);display:block;margin-bottom:4px}
-  button.primary{background:var(--accent);border:none;color:#fff;padding:10px 18px;border-radius:8px;
-    font-size:14px;font-weight:600;cursor:pointer}
-  button.ghost{background:transparent;border:1px solid var(--line);color:var(--dim);
-    padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:6px}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;
-    border-left:4px solid var(--line)}
-  .card.green{border-left-color:var(--green)} .card.amber{border-left-color:var(--amber)} .card.red{border-left-color:var(--red)}
-  .card .top{padding:13px 15px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
-  .card .market{font-weight:600}
-  .badge{font-size:12px;padding:3px 9px;border-radius:999px}
-  .badge.green{background:rgba(46,160,67,.15);color:#5fd17a}
-  .badge.amber{background:rgba(210,153,34,.15);color:#e3b341}
-  .badge.red{background:rgba(218,54,51,.15);color:#f08a87}
-  .card .body{padding:14px 15px}
-  .en{color:var(--dim);font-size:13px;margin-bottom:6px}
-  .tgt{font-size:18px;font-weight:600;margin-bottom:10px;white-space:pre-wrap}
-  .prov{font-size:12px;color:var(--dim);margin-bottom:8px}
-  .formality{font-size:11px;color:var(--accent)}
-  .flags{margin:8px 0;font-size:13px}
-  .flag{padding:6px 9px;border-radius:6px;margin-bottom:5px}
-  .flag.ERROR{background:rgba(218,54,51,.12);color:#f08a87}
-  .flag.WARN{background:rgba(210,153,34,.12);color:#e3b341}
-  .ok{color:#5fd17a;font-size:13px}
-  .actions{display:flex;gap:8px;margin-top:10px}
-  .actions button{flex:1;border-radius:7px;padding:8px;font-size:13px;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--txt)}
-  .actions .approve{background:var(--green);border-color:var(--green);color:#fff;font-weight:600}
-  .actions .reject{color:#f08a87;border-color:#5b2a2a}
-  .resolved{margin-top:10px;font-size:13px;padding:8px 10px;border-radius:7px;background:var(--panel2)}
-  .resolved.learned{color:#5fd17a}
-  .marketfit{margin-top:8px;padding:10px 14px;border:1px dashed var(--accent);border-radius:10px;
-    color:var(--dim);font-size:13px}
-  .hint{color:var(--dim);font-size:12px;margin-top:6px}
-  details summary{cursor:pointer;color:var(--dim);font-size:13px}
+  input.tin,textarea.tin{width:100%;background:#0b0f14;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:9px 11px;font-size:14px;font-family:inherit}
+  .pill-mode{font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
+  .pill-mode.live{color:#7ee2a8;border-color:#2ea043}
 </style>
 </head>
 <body>
 <header>
   <h1>🛡️ Loc Sentinel</h1>
-  <span class="tag">Deterministic localization · one human review · <em>the model on a leash</em></span>
-  <span id="mode" class="pill">demo mode</span>
+  <span class="tag">Interactive demo · localization on a leash</span>
+  <span id="mode" class="pill-mode">demo mode</span>
+  <div class="modes">
+    <button id="m-guided" class="on" onclick="setMode('guided')">🎬 Guided demo</button>
+    <button id="m-free" onclick="setMode('free')">🧪 Free play</button>
+  </div>
 </header>
 
 <main>
-  <div class="panel">
-    <label>Try a sample string (the QA gates &amp; TM reuse fire on these):</label>
-    <div id="chips" class="chips"></div>
-    <div class="row">
-      <div style="flex:3">
-        <label>…or paste any English UI string</label>
-        <textarea id="text" rows="2" placeholder="e.g. Save your note"></textarea>
-      </div>
+  <!-- ===================== GUIDED ===================== -->
+  <div id="guided">
+    <div class="steps">
+      <div class="s on" id="st1"><span class="num">1</span> Developer ships a string</div>
+      <span class="arrow">→</span>
+      <div class="s" id="st2"><span class="num">2</span> The team reviews in Slack</div>
+      <span class="arrow">→</span>
+      <div class="s" id="st3"><span class="num">3</span> Back to production</div>
     </div>
-    <div class="row">
-      <div><label>key (optional)</label><input id="key" placeholder="save_button" /></div>
-      <div style="flex:2"><label>context (optional — error/​failure context disables “!”)</label>
-        <input id="context" placeholder="Primary button in the editor" /></div>
-      <div style="flex:0 0 auto">
-        <button class="primary" onclick="translateNow()">Translate →</button>
+
+    <!-- stage: pick -->
+    <section id="stage-pick" class="panel">
+      <h2 class="lead">👩‍💻 You’re a developer. Ship one string.</h2>
+      <p class="sub">Pick a UI string to add to the app and open a pull request — just like real life.
+        Crowdin will pick it up, and Loc Sentinel takes it from there.</p>
+      <div id="picker" class="picker"></div>
+      <div id="diff" class="diff" hidden></div>
+      <div class="nav">
+        <span class="hint">No spreadsheets. A commit is all it takes.</span>
+        <button class="btn" id="commitBtn" onclick="commitPR()" disabled>Commit &amp; open Pull Request →</button>
       </div>
-    </div>
-    <details style="margin-top:12px">
-      <summary>Translate a brand-new string with your own Anthropic key (optional)</summary>
-      <div class="row">
-        <div style="flex:3"><label>ANTHROPIC_API_KEY (used once, never stored)</label>
-          <input id="byo" type="password" placeholder="sk-ant-…" /></div>
+    </section>
+
+    <!-- stage: pipeline -->
+    <section id="stage-pipe" class="panel" hidden>
+      <h2 class="lead" style="text-align:center">Your commit is flowing through the pipeline…</h2>
+      <div class="pipe">
+        <div class="node" id="n0"><div class="ic">🧑‍💻</div><small>git push</small></div>
+        <div class="wire" id="w0"></div>
+        <div class="node" id="n1"><div class="ic">🌐</div><small>Crowdin</small></div>
+        <div class="wire" id="w1"></div>
+        <div class="node" id="n2"><div class="ic">🛡️</div><small>Loc Sentinel</small></div>
+        <div class="wire" id="w2"></div>
+        <div class="node" id="n3"><div class="ic">💬</div><small>Slack</small></div>
       </div>
-      <div class="hint">Without a key, sample strings use a committed cache of real translations.
-        The deterministic half (TM, glossary, QA, market rules) runs with no key at all.</div>
-    </details>
-    <div style="margin-top:12px">
-      <button class="ghost" onclick="resetDemo()">↺ Reset demo TM</button>
-    </div>
+      <div class="pipe-status" id="pipeStatus"></div>
+    </section>
+
+    <!-- stage: slack -->
+    <section id="stage-slack" hidden>
+      <div class="slack">
+        <aside class="sidebar">
+          <div class="ws"><div class="logo">N</div><b>Nimbus&nbsp;Loc</b></div>
+          <div id="chan-localization" class="chan active" onclick="navChannel('localization')"><span class="hash">#</span> localization <span class="dot"></span></div>
+          <div id="chan-de" class="chan" onclick="navChannel('de')"><span class="hash">#</span> de-l10n <span class="dot"></span></div>
+          <div id="chan-pt" class="chan" onclick="navChannel('pt')"><span class="hash">#</span> pt-l10n <span class="dot"></span></div>
+          <div id="chan-es" class="chan" onclick="navChannel('es')"><span class="hash">#</span> es-l10n <span class="dot"></span></div>
+        </aside>
+        <div class="chat">
+          <div class="chat-head"><span class="hash">#</span> <span id="chanName">localization</span></div>
+          <div class="guide" id="guide"></div>
+          <div class="msgs" id="msgs"></div>
+        </div>
+      </div>
+      <div class="nav">
+        <button class="btn ghost" onclick="restart()">↺ Start over</button>
+        <button class="btn" id="advBtn" onclick="advance()" disabled>Next →</button>
+      </div>
+    </section>
+
+    <!-- stage: done -->
+    <section id="stage-done" class="panel" hidden>
+      <div class="done-wrap">
+        <div class="check">✅</div>
+        <h2 class="lead">One commit → reviewed translations in production.</h2>
+        <p class="sub" id="doneSub"></p>
+        <div class="recap" id="recap"></div>
+        <div class="prbar">🔀 <b>l10n_main → main</b> merged · only <b>approved</b> translations shipped
+          <span class="pill green">export_only_approved</span></div>
+        <p class="sub" style="margin-top:14px">The model proposed; the deterministic rules disposed; one human decided.
+          That’s the whole pitch — and you just ran it.</p>
+        <div style="display:flex;gap:10px;justify-content:center;margin-top:10px;flex-wrap:wrap">
+          <button class="btn" onclick="restart()">🔁 Try another string</button>
+          <a class="btn ghost" href="https://github.com/wolivm/loc-sentinel" target="_blank" style="text-decoration:none">View the code on GitHub</a>
+        </div>
+      </div>
+    </section>
   </div>
 
-  <div id="marketfit"></div>
-  <div id="results" class="grid"></div>
+  <!-- ===================== FREE PLAY ===================== -->
+  <div id="free" hidden>
+    <div class="panel">
+      <h2 class="lead">🧪 Free play — translate any English string</h2>
+      <p class="sub">See the real deterministic pipeline for all three markets at once: TM reuse, glossary
+        enforcement, the QA gates, confidence, and the same string rendered per market.</p>
+      <div class="fp-row">
+        <div style="flex:3"><label>English UI string</label><textarea id="fp-text" class="tin" rows="2" placeholder="e.g. Save your note"></textarea></div>
+      </div>
+      <div class="fp-row" style="margin-top:10px">
+        <div><label>key (optional)</label><input id="fp-key" class="tin" placeholder="save_button"></div>
+        <div style="flex:2"><label>context (optional — “error/failure” disables “!”)</label><input id="fp-ctx" class="tin" placeholder="Primary button"></div>
+        <div style="flex:0 0 auto"><button class="btn" onclick="freeTranslate()">Translate →</button></div>
+      </div>
+      <details style="margin-top:10px"><summary style="color:var(--dim);cursor:pointer;font-size:13px">Translate a brand-new string with your own Anthropic key</summary>
+        <div class="fp-row" style="margin-top:8px"><div style="flex:3"><label>ANTHROPIC_API_KEY (used once, never stored)</label><input id="fp-byo" class="tin" type="password" placeholder="sk-ant-…"></div></div>
+      </details>
+    </div>
+    <div id="fp-marketfit"></div>
+    <div id="fp-results" class="grid"></div>
+  </div>
 </main>
 
+<div id="toast"></div>
+
 <script>
-let CONFIG = {markets: []};
+let CFG={markets:[]}, SAMPLES=[], CHOSEN=null, RESULTS=null, ACT=0;
+const LANG_BY = {de:'de','pt':'pt-BR','es':'es'};
+const STORY = [
+  {ch:'de', lang:'de', action:'approve', role:'You’re the German reviewer.', prompt:'This one’s clean — <b>Approve</b> it.'},
+  {ch:'pt', lang:'pt-BR', action:'edit', role:'You’re the Brazilian reviewer.', prompt:'Tweak the wording, then <b>Save</b> — the system will learn your edit.'},
+  {ch:'es', lang:'es', action:'reject', role:'You’re the Spanish reviewer.', prompt:'<b>Reject</b> it — it goes back to a human and never ships.'},
+];
+const esc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const $=id=>document.getElementById(id);
+function toast(msg){const t=$('toast');t.innerHTML=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2600);}
+function meter(score,color){const f=Math.max(0,Math.min(5,Math.round(score*5)));const sq={green:'🟩',amber:'🟨',red:'🟥'}[color]||'🟩';return sq.repeat(f)+'⬜'.repeat(5-f);}
 
 async function boot(){
-  CONFIG = await (await fetch('/api/config')).json();
-  document.getElementById('mode').textContent = CONFIG.has_key ? 'live key available' : 'demo mode (no key)';
-  if(CONFIG.has_key) document.getElementById('mode').classList.add('live');
-  const samples = (await (await fetch('/api/samples')).json()).strings;
-  const chips = document.getElementById('chips');
-  samples.forEach(s=>{
-    const b=document.createElement('button'); b.className='chip'; b.textContent=s.key;
-    b.onclick=()=>{ document.getElementById('text').value=s.source_en;
-      document.getElementById('key').value=s.key; document.getElementById('context').value=s.context;
-      translateNow(); };
-    chips.appendChild(b);
+  CFG = await (await fetch('/api/config')).json();
+  $('mode').textContent = CFG.has_key ? 'live key available' : 'demo mode (no key)';
+  if(CFG.has_key) $('mode').classList.add('live');
+  SAMPLES = (await (await fetch('/api/samples')).json()).strings;
+  renderPicker();
+}
+const RECO = new Set(['save_button','loading_notes','reminders_today','streak_safe','delete_confirm_body','focus_promo']);
+function renderPicker(){
+  const p=$('picker'); p.innerHTML='';
+  SAMPLES.forEach(s=>{
+    const d=document.createElement('div'); d.className='pick'; d.dataset.key=s.key;
+    d.innerHTML=`<span class="k">${esc(s.key)}</span><span class="t">${esc(s.source_en)}</span>`+
+      (RECO.has(s.key)?'<span class="star">★ shows a QA catch</span>':'');
+    d.onclick=()=>choose(s,d);
+    p.appendChild(d);
   });
 }
+function choose(s,el){
+  CHOSEN=s;
+  document.querySelectorAll('.pick').forEach(x=>x.classList.remove('sel'));
+  el.classList.add('sel');
+  $('commitBtn').disabled=false;
+  const d=$('diff'); d.hidden=false;
+  d.innerHTML=`<div class="fn">i18n/en.json</div>`+
+    `<div class="ln">  "sync_now": "Sync now",</div>`+
+    `<div class="ln">  "reminders_today": "You have {count} reminders today",</div>`+
+    `<div class="ln add">  "${esc(s.key)}": "${esc(s.source_en)}"   ← your new string</div>`;
+}
 
-function esc(s){return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
-async function translateNow(){
-  const text=document.getElementById('text').value.trim();
-  if(!text) return;
-  const payload={text, key:document.getElementById('key').value,
-    context:document.getElementById('context').value, byo_key:document.getElementById('byo').value};
-  const res=document.getElementById('results'); res.innerHTML='<div class="hint">Running the pipeline…</div>';
-  const r=await fetch('/api/translate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+async function commitPR(){
+  if(!CHOSEN) return;
+  // fetch real engine output for the chosen string
+  $('commitBtn').disabled=true; $('commitBtn').textContent='Opening PR…';
+  const r=await fetch('/api/translate',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({text:CHOSEN.source_en,key:CHOSEN.key,context:CHOSEN.context})});
   const data=await r.json();
-  if(data.error){ res.innerHTML='<div class="flag ERROR">'+esc(data.error)+'</div>'; return; }
-  renderMarketFit(data.results);
-  res.innerHTML=''; data.results.forEach(rr=>res.appendChild(card(rr)));
+  RESULTS={}; (data.results||[]).forEach(x=>RESULTS[x.lang]=x);
+  $('commitBtn').textContent='Commit & open Pull Request →';
+  show('stage-pipe'); setStep(2);
+  await runPipeline();
+  enterSlack();
+}
+function show(id){['stage-pick','stage-pipe','stage-slack','stage-done'].forEach(s=>$(s).hidden=(s!==id));}
+function setStep(n){[1,2,3].forEach(i=>{const e=$('st'+i);e.className='s'+(i<n?' done':i===n?' on':'');});}
+
+async function runPipeline(){
+  const steps=[
+    ['n0',null,'Developer pushed the commit'],
+    ['n1','w0','Crowdin imported the new source string'],
+    ['n2','w1','Loc Sentinel: TM lookup → grounded translation → QA gates → confidence'],
+    ['n3','w2','Routing review cards to the language channels…'],
+  ];
+  for(const [n,w,msg] of steps){
+    if(w){$(w).classList.add('on');}
+    $(n).classList.add('on'); $('pipeStatus').textContent=msg;
+    await sleep(950);
+    if(w){$(w).classList.remove('on');}
+  }
+  await sleep(450);
 }
 
-function renderMarketFit(results){
-  const mf=document.getElementById('marketfit');
-  const formal=results.find(r=>r.market.formality==='formal');
-  const informal=results.find(r=>r.market.formality==='informal');
-  if(formal&&informal&&formal.proposed_target&&informal.proposed_target){
-    mf.innerHTML='<div class="marketfit">🎯 <b>Same English, fit for each market.</b> '+
-      formal.market.flag+' <b>'+esc(formal.market.name)+'</b> uses <b>'+esc(formal.market.pronoun)+
-      '</b> (formal): “'+esc(formal.proposed_target)+'” — '+
-      informal.market.flag+' <b>'+esc(informal.market.name)+'</b> uses <b>'+esc(informal.market.pronoun)+
-      '</b> (informal): “'+esc(informal.proposed_target)+'”.</div>';
-  } else mf.innerHTML='';
+/* ---------- card rendering ---------- */
+function cardHTML(r,opts={}){
+  const m=r.market, color=r.confidence_color, band=r.confidence_band.toUpperCase();
+  const origin = r.tm_origin==='reused' ? '♻️ Reused verbatim from Translation Memory'
+    : '🆕 Machine-translated, grounded in the guidelines';
+  const gloss = (r.glossary_applied||[]).length
+    ? `<div class="ctx">🔒 Glossary enforced: ${r.glossary_applied.map(t=>esc(t.source)+'→'+esc(t.target)).join(', ')}</div>`:'';
+  const qa = (r.qa_flags||[]).length
+    ? r.qa_flags.map(f=>`<div class="qa-flag ${f.severity}">${f.severity==='ERROR'?'🔴':'🟡'} <b>${f.severity}</b> ${esc(f.message)}</div>`).join('')
+    : '<div class="qa-ok">✅ All deterministic QA gates passed</div>';
+  const tgt = esc(opts.target!=null?opts.target:r.proposed_target);
+  return `<div class="att ${color}" id="att-${m.lang.replace('-','_')}"><div class="pad">
+    <div class="ahead">${r.confidence_badge} ${esc(r.key)}</div>
+    <div class="arow">
+      <div><div class="lab">Market</div>${m.flag} ${esc(m.name)}</div>
+      <div><div class="lab">Confidence</div><span class="meter">${meter(r.confidence_score,color)}</span> ${band} · ${r.confidence_score.toFixed(2)}</div>
+    </div>
+    <div class="hr"></div>
+    <div class="lab">English source</div><div class="src">${esc(r.source_en)}</div>
+    <div class="lab">${esc(m.name)} translation</div><div class="tgt" id="tgt-${m.lang.replace('-','_')}">${tgt}</div>
+    <div class="ctx">${origin} · register: ${esc(m.formality)} (${esc(m.pronoun)})</div>
+    ${gloss}
+    <div class="hr"></div>
+    ${qa}
+    <div class="acts" id="acts-${m.lang.replace('-','_')}"></div>
+    <div id="slot-${m.lang.replace('-','_')}"></div>
+  </div></div>`;
 }
 
-function card(r){
-  const color=r.confidence_color; const m=r.market;
-  const div=document.createElement('div'); div.className='card '+color;
-  const flags=r.qa_flags.length
-    ? r.qa_flags.map(f=>'<div class="flag '+f.severity+'">'+(f.severity==='ERROR'?'🔴':'🟡')+' <b>'+f.severity+'</b> '+esc(f.message)+'</div>').join('')
-    : '<div class="ok">✅ all QA gates passed</div>';
-  const origin = r.tm_origin==='reused' ? '♻️ TM reuse (verbatim)' : '🆕 new · '+r.translation_origin;
-  const gloss = r.glossary_applied.length ? ' · glossary: '+r.glossary_applied.map(t=>esc(t.source)+'→'+esc(t.target)).join(', ') : '';
-  div.innerHTML =
-    '<div class="top"><span class="market">'+m.flag+' '+esc(m.name)+'</span>'+
-      '<span class="badge '+color+'">'+r.confidence_badge+' '+r.confidence_band.toUpperCase()+' '+r.confidence_score.toFixed(2)+'</span></div>'+
-    '<div class="body">'+
-      '<div class="en">EN · '+esc(r.source_en)+'</div>'+
-      '<div class="tgt" data-tgt>'+esc(r.proposed_target||'—')+'</div>'+
-      '<div class="formality">register: '+esc(m.formality)+' ('+esc(m.pronoun)+')'+(m.inverted?' · ¿¡ market':'')+'</div>'+
-      '<div class="prov">'+origin+gloss+'</div>'+
-      '<div class="flags">'+flags+'</div>'+
-      '<div class="slot"></div>'+
-    '</div>';
-  const slot=div.querySelector('.slot');
-  if(r.proposed_target) slot.appendChild(actions(r, div));
-  return div;
+/* ---------- slack flow ---------- */
+function enterSlack(){
+  show('stage-slack'); setStep(2); ACT=0;
+  // mark unread on language channels
+  ['de','pt','es'].forEach(c=>$('chan-'+c).classList.add('unread'));
+  navChannel('localization', true);
+  // digest in #localization
+  const rows = STORY.map(s=>{
+    const r=RESULTS[s.lang]; const m=r.market;
+    return `<div class="drow" id="drow-${s.ch}">${m.flag} <b>${esc(m.name)}</b>
+      <span class="pill" id="dpill-${s.ch}">awaiting review</span></div>`;
+  }).join('');
+  setMessages('localization', [`
+    <div class="att" style="border-left-color:#4c8dff"><div class="pad">
+      <div class="ahead">📦 App · 1 new string localized</div>
+      <div class="ctx">Pushed to Crowdin and run through the pipeline · <b>Project:</b> App · <b>Flow:</b> GitHub → Crowdin → Loc Sentinel</div>
+      <div class="hr"></div>
+      <div class="digest-rows">${rows}</div>
+      <div class="ctx" id="digest-foot">Reviews routed to the language channels →</div>
+    </div></div>`]);
+  setGuide('📣','The whole team', 'Management sees <b>what shipped</b> at a glance. Now step into the language channels and review.');
+  $('advBtn').disabled=false; $('advBtn').textContent='Open #de-l10n →';
 }
 
-function actions(r, div){
-  const wrap=document.createElement('div'); wrap.className='actions';
-  const ap=document.createElement('button'); ap.className='approve'; ap.textContent='Approve';
-  ap.onclick=()=>resolve(r, div, 'approved', r.proposed_target);
-  const ed=document.createElement('button'); ed.textContent='Edit';
-  ed.onclick=()=>startEdit(r, div);
-  const rj=document.createElement('button'); rj.className='reject'; rj.textContent='Reject';
-  rj.onclick=()=>{ const reason=prompt('Reason for reject (routes to a human):')||''; resolve(r, div, 'rejected', '', reason); };
-  wrap.append(ap, ed, rj); return wrap;
+function setMessages(ch, cards){
+  const who = ch==='localization'?'':'';
+  $('msgs').dataset.ch=ch;
+  $('msgs').innerHTML = cards.map(c=>`
+    <div class="msg"><div class="av">LS</div><div class="body">
+      <div class="who">Loc Sentinel <span class="app">APP</span><span class="ts">just now</span></div>
+      ${c}
+    </div></div>`).join('');
+}
+function setGuide(icon, role, text){ $('guide').innerHTML=`<span style="font-size:18px">${icon}</span> <span class="role">${role}:</span> <span>${text}</span>`; }
+function navChannel(ch, silent){
+  ['localization','de','pt','es'].forEach(c=>$('chan-'+c).classList.toggle('active', c===ch));
+  $('chanName').textContent = ch==='localization'?'localization':ch+'-l10n';
+  $('chan-'+ch).classList.remove('unread');
+  if(silent) return;
+  // re-render the channel content based on its state
+  renderChannel(ch);
+}
+const CH_STATE={de:'pending',pt:'pending',es:'pending'};
+function renderChannel(ch){
+  if(ch==='localization'){ /* keep digest */ enterDigestOnly(); return; }
+  const s=STORY.find(x=>x.ch===ch); const r=RESULTS[s.lang];
+  setMessages(ch,[cardHTML(r)]);
+  // wire action buttons for this card
+  wireCard(ch,s,r);
+}
+function enterDigestOnly(){ /* digest already in DOM if revisiting; rebuild quickly */
+  const rows = STORY.map(s=>{const m=RESULTS[s.lang].market;
+    const st=CH_STATE[s.ch];
+    const pill = st==='approved'?'<span class="pill green">✅ approved</span>'
+      : st==='edited'?'<span class="pill green">✏️ edited & approved</span>'
+      : st==='rejected'?'<span class="pill red">🚫 rejected → human</span>'
+      : '<span class="pill">awaiting review</span>';
+    return `<div class="drow">${m.flag} <b>${esc(m.name)}</b> ${pill}</div>`;}).join('');
+  setMessages('localization',[`
+    <div class="att" style="border-left-color:#4c8dff"><div class="pad">
+      <div class="ahead">📦 App · 1 new string localized</div>
+      <div class="ctx">Project: App · Flow: GitHub → Crowdin → Loc Sentinel</div>
+      <div class="hr"></div><div class="digest-rows">${rows}</div></div></div>`]);
+}
+function setDigestPill(ch,kind,label){
+  const p=$('dpill-'+ch); if(!p)return; p.className='pill '+kind; p.textContent=label;
 }
 
-function startEdit(r, div){
-  const slot=div.querySelector('.slot'); const cur=div.querySelector('[data-tgt]').textContent;
-  slot.innerHTML='';
-  const ta=document.createElement('input'); ta.value=cur;
-  const save=document.createElement('button'); save.className='primary'; save.textContent='Save & learn';
-  const cancel=document.createElement('button'); cancel.className='ghost'; cancel.textContent='Cancel';
-  save.onclick=()=>resolve(r, div, 'edited', ta.value.trim());
-  cancel.onclick=()=>{ slot.innerHTML=''; slot.appendChild(actions(r, div)); };
-  const row=document.createElement('div'); row.className='row';
-  const c=document.createElement('div'); c.style.flex='3'; c.appendChild(ta);
-  row.append(c, save, cancel); slot.appendChild(row);
+function wireCard(ch,s,r){
+  const suf=s.lang.replace('-','_');
+  const acts=$('acts-'+suf);
+  const mk=(cls,label,fn,glow)=>{const b=document.createElement('button');b.className=cls+(glow?' glow':'');b.textContent=label;b.onclick=fn;if(!glow)b.disabled=true;return b;};
+  acts.innerHTML='';
+  acts.appendChild(mk('approve','Approve',()=>doApprove(ch,s,r), s.action==='approve'));
+  acts.appendChild(mk('','Edit',()=>doEdit(ch,s,r), s.action==='edit'));
+  acts.appendChild(mk('reject','Reject',()=>doReject(ch,s,r), s.action==='reject'));
 }
 
-async function resolve(r, div, status, final_target, reason){
-  const body={lang:r.lang, source_en:r.source_en, status, final_target};
-  const out=await (await fetch('/api/resolve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})).json();
-  const slot=div.querySelector('.slot'); slot.innerHTML='';
-  const note=document.createElement('div');
-  if(status==='rejected'){ note.className='resolved'; note.textContent='🚫 Rejected'+(reason?' — '+reason:'')+' · routed to a human'; }
-  else if(out.learned){
-    note.className='resolved learned';
-    note.innerHTML='✅ '+(status==='edited'?'Edited':'Approved')+' → Crowdin · <b>'+out.learned.tm_action+'</b> → TM learned. '+
-      'Re-run “'+esc(r.source_en)+'” now → <b>'+out.learned.after.confidence_badge+' '+out.learned.after.confidence_band.toUpperCase()+'</b> (instant TM reuse).';
-    if(status==='edited'){ div.querySelector('[data-tgt]').textContent=final_target; }
-  } else { note.className='resolved'; note.textContent='Done.'; }
-  slot.appendChild(note);
+function lock(ch){ $('acts-'+STORY.find(x=>x.ch===ch).lang.replace('-','_')).innerHTML=''; }
+
+async function doApprove(ch,s,r){
+  lock(ch);
+  $('slot-'+s.lang.replace('-','_')).innerHTML=`<div class="resolved approved">✅ <b>APPROVED</b> by you · approved in Crowdin · TM reinforced</div>`;
+  CH_STATE[ch]='approved'; setDigestPill(ch,'green','✅ approved');
+  toast('✅ Approved in Crowdin · same English will now reuse this from the TM, instantly');
+  afterAct(ch);
+}
+function doEdit(ch,s,r){
+  const suf=s.lang.replace('-','_');
+  const slot=$('slot-'+suf);
+  slot.innerHTML=`<div class="editbox"><input id="edit-${suf}" value="${esc(r.proposed_target)}"/>
+    <button class="save">Save &amp; approve</button><button class="cancel">Cancel</button></div>`;
+  const inp=slot.querySelector('input'); inp.focus();
+  slot.querySelector('.save').onclick=()=>{
+    const val=inp.value.trim()||r.proposed_target;
+    $('tgt-'+suf).textContent=val;
+    lock(ch); slot.innerHTML=`<div class="resolved edited">✏️ <b>EDITED</b> by you → “${esc(val)}” · saved to Crowdin · the system learned your edit</div>`;
+    CH_STATE[ch]='edited'; setDigestPill(ch,'green','✏️ edited & approved');
+    toast('✏️ Saved to Crowdin and appended to the Translation Memory — it just learned from you');
+    afterAct(ch);
+  };
+  slot.querySelector('.cancel').onclick=()=>{slot.innerHTML='';};
+}
+function doReject(ch,s,r){
+  const suf=s.lang.replace('-','_');
+  const slot=$('slot-'+suf);
+  slot.innerHTML=`<div class="editbox"><input placeholder="Reason (routes to a human)…" value="Doesn’t match our tone / failed a QA gate"/>
+    <button class="save" style="background:var(--red)">Reject & route</button><button class="cancel">Cancel</button></div>`;
+  const inp=slot.querySelector('input'); inp.focus();
+  slot.querySelector('.save').onclick=()=>{
+    const reason=inp.value.trim()||'rejected';
+    lock(ch); slot.innerHTML=`<div class="resolved rejected">🚫 <b>REJECTED</b> by you — ${esc(reason)} · routed to a human · <b>not shipped</b> (export_only_approved)</div>`;
+    CH_STATE[ch]='rejected'; setDigestPill(ch,'red','🚫 rejected → human');
+    toast('🚫 Routed to a human. Because only approved strings ship, this never reaches production.');
+    afterAct(ch);
+  };
+  slot.querySelector('.cancel').onclick=()=>{slot.innerHTML='';};
 }
 
-async function resetDemo(){
-  await fetch('/api/reset',{method:'POST'});
-  document.getElementById('results').innerHTML='<div class="hint">Demo TM restored to its pristine seed.</div>';
-  document.getElementById('marketfit').innerHTML='';
+function afterAct(ch){
+  ACT++;
+  if(ACT<STORY.length){
+    const next=STORY[ACT];
+    $('advBtn').disabled=false;
+    $('advBtn').textContent='Open #'+next.ch+'-l10n →';
+  } else {
+    $('advBtn').disabled=false; $('advBtn').textContent='See the result →';
+  }
+}
+function advance(){
+  if(ACT>=STORY.length){ finale(); return; }
+  const s=STORY[ACT];
+  navChannel(s.ch);
+  setGuide(s.action==='approve'?'👀':s.action==='edit'?'✏️':'🚫', s.role, s.prompt);
+  $('advBtn').disabled=true; $('advBtn').textContent='⬑ take the action above';
+}
+
+function finale(){
+  show('stage-done'); setStep(3);
+  const names=Object.fromEntries(STORY.map(s=>[s.ch,RESULTS[s.lang].market]));
+  $('recap').innerHTML=STORY.map(s=>{
+    const st=CH_STATE[s.ch], m=names[s.ch];
+    const txt = st==='approved'?'Approved — shipped':st==='edited'?'Edited — learned & shipped':'Rejected — routed to a human';
+    const ic = st==='rejected'?'🚫':st==='edited'?'✏️':'✅';
+    return `<div class="r"><div class="h">${m.flag} ${esc(m.name)}</div><small>${ic} ${txt}</small></div>`;
+  }).join('');
+  $('doneSub').innerHTML=`<b>${esc(CHOSEN.source_en)}</b> → reviewed in 3 markets · 2 shipped, 1 kept with a human.`;
+}
+
+function restart(){
+  CHOSEN=null;RESULTS=null;ACT=0;Object.keys(CH_STATE).forEach(k=>CH_STATE[k]='pending');
+  $('diff').hidden=true; $('commitBtn').disabled=true;
+  document.querySelectorAll('.pick').forEach(x=>x.classList.remove('sel'));
+  ['n0','n1','n2','n3'].forEach(n=>$(n).classList.remove('on'));
+  show('stage-pick'); setStep(1);
+}
+
+/* ---------- free play ---------- */
+function setMode(m){
+  $('m-guided').classList.toggle('on',m==='guided');
+  $('m-free').classList.toggle('on',m==='free');
+  $('guided').hidden=(m!=='guided'); $('free').hidden=(m!=='free');
+}
+async function freeTranslate(){
+  const text=$('fp-text').value.trim(); if(!text)return;
+  const res=$('fp-results'); res.innerHTML='<div class="ctx">Running the pipeline…</div>';
+  const r=await fetch('/api/translate',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({text,key:$('fp-key').value,context:$('fp-ctx').value,byo_key:$('fp-byo').value})});
+  const data=await r.json();
+  if(data.error){res.innerHTML='<div class="qa-flag ERROR">'+esc(data.error)+'</div>';return;}
+  // market fit
+  const formal=data.results.find(x=>x.market.formality==='formal'), informal=data.results.find(x=>x.market.formality==='informal');
+  $('fp-marketfit').innerHTML=(formal&&informal&&formal.proposed_target&&informal.proposed_target)?
+    `<div class="panel" style="margin-top:14px;border-style:dashed;border-color:var(--accent)">🎯 <b>Same English, fit for each market.</b>
+      ${formal.market.flag} <b>${esc(formal.market.name)}</b> uses <b>${esc(formal.market.pronoun)}</b> (formal): “${esc(formal.proposed_target)}” —
+      ${informal.market.flag} <b>${esc(informal.market.name)}</b> uses <b>${esc(informal.market.pronoun)}</b> (informal): “${esc(informal.proposed_target)}”.</div>`:'';
+  res.innerHTML=''; data.results.forEach(x=>{const w=document.createElement('div');w.innerHTML=cardHTML(x);res.appendChild(w);});
 }
 
 boot();
