@@ -75,6 +75,16 @@
       "de": "Mit dem Fokusmodus schaffen Sie mehr. Probieren Sie es noch heute aus!",
       "pt-BR": "O Modo Foco ajuda você a fazer mais. Experimente hoje!",
       "es": "El Modo Concentración te ayuda a hacer más. ¡Pruébalo hoy!"
+    },
+    "save_draft": {
+      "de": "Entwurf speichern",
+      "pt-BR": "Salvar Seu Rascunho",
+      "es": "Guardar borrador"
+    },
+    "syncing_data": {
+      "de": "Ihre Daten werden synchronisiert",
+      "pt-BR": "Sincronizando seus dados",
+      "es": "Sincronizando tus datos…"
     }
   }
 }

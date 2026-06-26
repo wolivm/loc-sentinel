@@ -79,6 +79,11 @@ def _strings_from_events(events: list[dict], client) -> list[dict]:
         sid = s.get("id")
         if not s.get("text") or (sid is not None and sid in seen):
             continue
+        # Demo strings injected by /addstrings are held back from the auto-pipeline
+        # so a human can clear them via /loc untranslated → [Localize now].
+        if tickets.is_webhook_held(sid):
+            log.info("string %s is held (demo) — skipping auto-translate", sid)
+            continue
         if sid is not None:
             seen.add(sid)
         out.append({

@@ -123,6 +123,41 @@ class CrowdinClient:
                              params={"limit": 100})
         return [item["data"] for item in data.get("data", [])]
 
+    # --- demo string injection (dedicated file, never the GitHub-managed one) --
+    def _upload_storage(self, filename: str, content: bytes) -> int:
+        url = f"{self.base}/storages"
+        headers = {"Authorization": f"Bearer {self.token}",
+                   "Crowdin-API-FileName": filename,
+                   "Content-Type": "application/octet-stream"}
+        r = httpx.post(url, headers=headers, content=content, timeout=30)
+        if r.status_code >= 400:
+            raise CrowdinError(f"POST /storages → {r.status_code}: {r.text[:200]}")
+        return r.json()["data"]["id"]
+
+    def ensure_file(self, name: str) -> int:
+        """Find a project file by name, or create an empty JSON file. Returns fileId."""
+        data = self._request("GET", f"/projects/{self.project_id}/files", params={"limit": 500})
+        for item in data.get("data", []):
+            if item["data"].get("name") == name:
+                return item["data"]["id"]
+        storage_id = self._upload_storage(name, b"{}\n")
+        created = self._request("POST", f"/projects/{self.project_id}/files",
+                                json={"storageId": storage_id, "name": name})
+        return created["data"]["id"]
+
+    def add_source_string(self, file_id: int, identifier: str, text: str, context: str = "") -> dict:
+        body = {"fileId": int(file_id), "identifier": identifier, "text": text}
+        if context:
+            body["context"] = context
+        data = self._request("POST", f"/projects/{self.project_id}/strings", json=body)
+        return data.get("data", {})
+
+    def delete_source_string(self, string_id: int) -> None:
+        self._request("DELETE", f"/projects/{self.project_id}/strings/{int(string_id)}")
+
+    def delete_file(self, file_id: int) -> None:
+        self._request("DELETE", f"/projects/{self.project_id}/files/{int(file_id)}")
+
     def untranslated_source_strings(self, language_id: str, limit: int = 200) -> list[dict]:
         """Source strings with NO translation yet in `language_id` (for /loc untranslated
         + [Localize now]). O(N) — fine for a project of this size; a CroQL filter

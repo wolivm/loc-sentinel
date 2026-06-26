@@ -14,7 +14,9 @@
     "loading your notes": "Ihre Notizen werden geladen",
     "{count} notes synced": "{count} Notizen synchronisiert",
     "nice work! you completed today's habit": "Gut gemacht! Sie haben die heutige Gewohnheit abgeschlossen.",
-    "focus mode helps you get more done. try it today!": "Mit dem Fokusmodus schaffen Sie mehr. Probieren Sie es noch heute aus!"
+    "focus mode helps you get more done. try it today!": "Mit dem Fokusmodus schaffen Sie mehr. Probieren Sie es noch heute aus!",
+    "save your draft": "Entwurf speichern",
+    "syncing your data": "Ihre Daten werden synchronisiert"
   },
   "pt-BR": {
     "save your note": "Salvar Sua Nota",
@@ -31,7 +33,9 @@
     "loading your notes": "Carregando suas notas",
     "{count} notes synced": "{count} notas sincronizadas",
     "nice work! you completed today's habit": "Bom trabalho! Você concluiu o hábito de hoje.",
-    "focus mode helps you get more done. try it today!": "O Modo Foco ajuda você a fazer mais. Experimente hoje!"
+    "focus mode helps you get more done. try it today!": "O Modo Foco ajuda você a fazer mais. Experimente hoje!",
+    "save your draft": "Salvar Seu Rascunho",
+    "syncing your data": "Sincronizando seus dados"
   },
   "es": {
     "save your note": "Guardar nota",
@@ -48,6 +52,8 @@
     "loading your notes": "Cargando tus notas…",
     "{count} notes synced": "{count} notas sincronizadas",
     "nice work! you completed today's habit": "¡Buen trabajo! Has completado el hábito de hoy.",
-    "focus mode helps you get more done. try it today!": "El Modo Concentración te ayuda a hacer más. ¡Pruébalo hoy!"
+    "focus mode helps you get more done. try it today!": "El Modo Concentración te ayuda a hacer más. ¡Pruébalo hoy!",
+    "save your draft": "Guardar borrador",
+    "syncing your data": "Sincronizando tus datos…"
   }
 }

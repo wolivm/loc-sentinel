@@ -25,6 +25,8 @@
     {"id": 1019, "key": "sync_now", "text": "Sync now", "context": "Manual sync button."},
     {"id": 1020, "key": "notes_synced_count", "text": "{count} notes synced", "context": "Status line after a sync. {count} is a number."},
     {"id": 1021, "key": "habit_done_cheer", "text": "Nice work! You completed today's habit", "context": "Celebration shown after finishing a habit. One exclamation is allowed here — this is a positive, upbeat string."},
-    {"id": 1022, "key": "focus_promo", "text": "Focus Mode helps you get more done. Try it today!", "context": "Promo card. Two sentences, one exclamation allowed."}
+    {"id": 1022, "key": "focus_promo", "text": "Focus Mode helps you get more done. Try it today!", "context": "Promo card. Two sentences, one exclamation allowed."},
+    {"id": 1023, "key": "save_draft", "text": "Save your draft", "context": "Primary button in the editor (demo string — distinct from save_button)."},
+    {"id": 1024, "key": "syncing_data", "text": "Syncing your data", "context": "Loading state (demo string). NOTE: targets must NOT add an ellipsis."}
   ]
 }

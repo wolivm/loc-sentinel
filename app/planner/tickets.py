@@ -213,3 +213,26 @@ def mark_processed(event_id: str) -> None:
     conn.execute("INSERT OR IGNORE INTO processed_events(event_id, at) VALUES (?,?)",
                  (event_id, _now()))
     conn.commit()
+
+
+def hold_from_webhook(crowdin_string_ids: list) -> None:
+    """Tell the auto-webhook to ignore these Crowdin string ids (demo strings)."""
+    conn = get_conn()
+    conn.executemany("INSERT OR IGNORE INTO webhook_skip(crowdin_string_id, at) VALUES (?,?)",
+                     [(str(i), _now()) for i in crowdin_string_ids if i])
+    conn.commit()
+
+
+def is_webhook_held(crowdin_string_id) -> bool:
+    if not crowdin_string_id:
+        return False
+    return get_conn().execute(
+        "SELECT 1 FROM webhook_skip WHERE crowdin_string_id=?", (str(crowdin_string_id),)
+    ).fetchone() is not None
+
+
+def release_webhook_hold(crowdin_string_ids: list) -> None:
+    conn = get_conn()
+    conn.executemany("DELETE FROM webhook_skip WHERE crowdin_string_id=?",
+                     [(str(i),) for i in crowdin_string_ids if i])
+    conn.commit()

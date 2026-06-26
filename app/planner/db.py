@@ -59,6 +59,13 @@ CREATE TABLE IF NOT EXISTS processed_events (
     event_id TEXT PRIMARY KEY,
     at TEXT NOT NULL
 );
+
+-- Crowdin string ids the auto-webhook should NOT translate (e.g. demo strings
+-- injected by /addstrings, left untranslated until a human clicks [Localize now]).
+CREATE TABLE IF NOT EXISTS webhook_skip (
+    crowdin_string_id TEXT PRIMARY KEY,
+    at TEXT NOT NULL
+);
 """
 
 _conn: sqlite3.Connection | None = None
