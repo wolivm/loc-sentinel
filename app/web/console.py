@@ -18,7 +18,7 @@ from pathlib import Path
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 
 from app.config import CACHE_DIR, SOT_DIR, get_settings
 from app.engine import tm
@@ -85,6 +85,12 @@ def _market_meta(lang: str) -> dict:
 @app.get("/", response_class=HTMLResponse)
 def index() -> str:
     return INDEX.read_text(encoding="utf-8")
+
+
+@app.get("/favicon.svg")
+def favicon() -> Response:
+    return Response((HERE / "static" / "favicon.svg").read_text(encoding="utf-8"),
+                    media_type="image/svg+xml")
 
 
 @app.get("/api/config")
