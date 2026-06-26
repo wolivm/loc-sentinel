@@ -96,6 +96,7 @@
   @keyframes lsPulse{0%,100%{opacity:.55}50%{opacity:1}}
   @keyframes lsBreath{0%,100%{box-shadow:0 6px 22px rgba(47,227,154,.35);transform:scale(1)}50%{box-shadow:0 12px 40px rgba(47,227,154,.65);transform:scale(1.035)}}
   #landing{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px 24px}
+  #landing[hidden]{display:none}   /* the id rule above would otherwise beat [hidden] */
   .l-badge{display:inline-flex;align-items:center;gap:8px;font-family:"JetBrains Mono";font-size:12px;color:var(--stext);
     background:rgba(47,227,154,.08);border:1px solid rgba(47,227,154,.25);border-radius:999px;padding:5px 13px}
   .l-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
